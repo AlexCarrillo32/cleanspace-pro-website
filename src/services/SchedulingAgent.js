@@ -1,5 +1,8 @@
 import Groq from "groq-sdk";
 import { getDatabase } from "../database/init.js";
+import { contentSafety } from "../utils/AIContentSafety.js";
+import { CircuitBreaker } from "../utils/CircuitBreaker.js";
+import { RetryPolicies } from "../utils/RetryPolicies.js";
 
 const GROQ_MODELS = {
   fast: "llama-3.1-8b-instant", // Free, very fast
@@ -104,6 +107,13 @@ export class SchedulingAgent {
 
     this.variant = VARIANTS[variant] || VARIANTS.baseline;
     this.variantName = variant;
+
+    // Safety systems
+    this.circuitBreaker = new CircuitBreaker({
+      failureThreshold: 5,
+      recoveryTimeout: 60000,
+    });
+    this.retryPolicy = RetryPolicies.standard;
   }
 
   async startConversation(sessionId) {
@@ -207,6 +217,36 @@ export class SchedulingAgent {
   async chat(conversationId, userMessage) {
     const startTime = Date.now();
 
+    // SAFETY CHECK: Content safety filter
+    const safetyCheck = contentSafety.checkSafety(userMessage);
+    if (!safetyCheck.safe) {
+      console.warn(
+        `🛡️ Blocked unsafe content: ${safetyCheck.violations[0].type}`,
+      );
+
+      // Log safety metric
+      await this.logSafetyMetric(
+        conversationId,
+        userMessage,
+        true,
+        safetyCheck.violations[0].type,
+      );
+
+      return {
+        message: safetyCheck.blockedReason,
+        action: "blocked",
+        extractedData: {},
+        metadata: {
+          blocked: true,
+          reason: safetyCheck.violations[0].type,
+          responseTime: Date.now() - startTime,
+        },
+      };
+    }
+
+    // Log passed safety check
+    await this.logSafetyMetric(conversationId, userMessage, false, null);
+
     // Log user message
     await this.logMessage(conversationId, "user", userMessage);
 
@@ -223,14 +263,20 @@ export class SchedulingAgent {
     ];
 
     try {
-      // Call Groq API
-      const completion = await this.client.chat.completions.create({
-        model: this.variant.model,
-        messages,
-        temperature: this.variant.temperature,
-        max_tokens: 500,
-        response_format: { type: "json_object" },
-      });
+      // SAFETY: Call Groq API with circuit breaker + retry policy
+      const completion = await this.circuitBreaker.execute(() =>
+        this.retryPolicy.executeWithRetry(
+          () =>
+            this.client.chat.completions.create({
+              model: this.variant.model,
+              messages,
+              temperature: this.variant.temperature,
+              max_tokens: 500,
+              response_format: { type: "json_object" },
+            }),
+          `Groq API (${this.variant.model})`,
+        ),
+      );
 
       const responseTime = Date.now() - startTime;
       const assistantMessage = completion.choices[0].message.content;
@@ -269,6 +315,15 @@ export class SchedulingAgent {
           action: "continue",
           extracted_data: {},
         };
+      }
+
+      // SAFETY CHECK: Response safety (prevent system prompt leaks)
+      const responseSafety = contentSafety.checkResponseSafety(
+        parsedResponse.message,
+      );
+      if (!responseSafety.safe) {
+        console.warn(`🛡️ Response safety issue: ${responseSafety.reason}`);
+        parsedResponse.message = responseSafety.sanitizedMessage;
       }
 
       return {
@@ -383,5 +438,41 @@ export class SchedulingAgent {
 
       stmt.finalize();
     });
+  }
+
+  async logSafetyMetric(conversationId, userMessage, blocked, violationType) {
+    const db = getDatabase();
+
+    return new Promise((resolve, reject) => {
+      const stmt = db.prepare(`
+        INSERT INTO safety_metrics (
+          conversation_id, safety_check_type, user_message,
+          blocked, violation_type, created_at
+        ) VALUES (?, 'content_safety', ?, ?, ?, CURRENT_TIMESTAMP)
+      `);
+
+      stmt.run(
+        [conversationId, userMessage, blocked ? 1 : 0, violationType],
+        function (err) {
+          if (err) reject(err);
+          else resolve({ id: this.lastID });
+        },
+      );
+
+      stmt.finalize();
+    }).catch((err) => {
+      // Table might not exist yet - that's okay
+      if (!err.message.includes("no such table")) {
+        console.error("Error logging safety metric:", err);
+      }
+    });
+  }
+
+  getSafetyMetrics() {
+    return {
+      contentSafety: contentSafety.getMetrics(),
+      circuitBreaker: this.circuitBreaker.getState(),
+      retryPolicy: this.retryPolicy.getMetrics(),
+    };
   }
 }
