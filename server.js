@@ -10,6 +10,8 @@ import { fileURLToPath } from 'url';
 import { initializeDatabase } from './src/database/init.js';
 import quoteRoutes from './src/routes/quotes.js';
 import inquiryRoutes from './src/routes/inquiries.js';
+import chatRoutes from './src/routes/chat.js';
+import analyticsRoutes from './src/routes/analytics.js';
 import { errorHandler } from './src/middleware/errorHandler.js';
 
 // Load environment variables
@@ -55,6 +57,8 @@ app.use(express.static('.', {
 // API Routes
 app.use('/api/quotes', quoteRoutes);
 app.use('/api/inquiries', inquiryRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
