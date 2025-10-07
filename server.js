@@ -12,6 +12,7 @@ import quoteRoutes from './src/routes/quotes.js';
 import inquiryRoutes from './src/routes/inquiries.js';
 import chatRoutes from './src/routes/chat.js';
 import analyticsRoutes from './src/routes/analytics.js';
+import reliabilityRoutes from './src/routes/reliability.js';
 import { errorHandler } from './src/middleware/errorHandler.js';
 
 // Load environment variables
@@ -59,6 +60,7 @@ app.use('/api/quotes', quoteRoutes);
 app.use('/api/inquiries', inquiryRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/reliability', reliabilityRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

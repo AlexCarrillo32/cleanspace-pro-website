@@ -3,6 +3,7 @@ import { getDatabase } from "../database/init.js";
 import { contentSafety } from "../utils/AIContentSafety.js";
 import { CircuitBreaker } from "../utils/CircuitBreaker.js";
 import { RetryPolicies } from "../utils/RetryPolicies.js";
+import { responseCache } from "../utils/ResponseCache.js";
 
 const GROQ_MODELS = {
   fast: "llama-3.1-8b-instant", // Free, very fast
@@ -247,6 +248,22 @@ export class SchedulingAgent {
     // Log passed safety check
     await this.logSafetyMetric(conversationId, userMessage, false, null);
 
+    // CACHE CHECK: Try to get cached response
+    const cachedResponse = await responseCache.get(
+      userMessage,
+      this.variantName,
+    );
+    if (cachedResponse) {
+      console.log(
+        `💾 Cache hit (${cachedResponse.matchType}) - saved ${cachedResponse.metadata.cost.toFixed(6)} USD, ${cachedResponse.metadata.responseTime}ms`,
+      );
+
+      // Log cached message (user message only, assistant response already logged when cached)
+      await this.logMessage(conversationId, "user", userMessage);
+
+      return cachedResponse;
+    }
+
     // Log user message
     await this.logMessage(conversationId, "user", userMessage);
 
@@ -326,7 +343,7 @@ export class SchedulingAgent {
         parsedResponse.message = responseSafety.sanitizedMessage;
       }
 
-      return {
+      const finalResponse = {
         message: parsedResponse.message,
         action: parsedResponse.action,
         extractedData: parsedResponse.extracted_data,
@@ -337,6 +354,22 @@ export class SchedulingAgent {
           responseTime,
         },
       };
+
+      // CACHE SAVE: Store response in cache for future use
+      await responseCache.set(
+        userMessage,
+        finalResponse,
+        this.variantName,
+        {
+          model: this.variant.model,
+          tokens: usage.total_tokens,
+          cost,
+          responseTime,
+        },
+        3600000, // 1 hour TTL
+      );
+
+      return finalResponse;
     } catch (error) {
       console.error("Groq API error:", error);
       throw error;
@@ -473,6 +506,7 @@ export class SchedulingAgent {
       contentSafety: contentSafety.getMetrics(),
       circuitBreaker: this.circuitBreaker.getState(),
       retryPolicy: this.retryPolicy.getMetrics(),
+      cache: responseCache.getMetrics(),
     };
   }
 }
