@@ -14,6 +14,7 @@ import chatRoutes from './src/routes/chat.js';
 import analyticsRoutes from './src/routes/analytics.js';
 import reliabilityRoutes from './src/routes/reliability.js';
 import lifecycleRoutes from './src/routes/lifecycle.js';
+import optimizationRoutes from './src/routes/optimization.js';
 import { errorHandler } from './src/middleware/errorHandler.js';
 
 // Load environment variables
@@ -63,6 +64,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/reliability', reliabilityRoutes);
 app.use('/api/lifecycle', lifecycleRoutes);
+app.use('/api/optimization', optimizationRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
