@@ -4,6 +4,8 @@ import { contentSafety } from "../utils/AIContentSafety.js";
 import { CircuitBreaker } from "../utils/CircuitBreaker.js";
 import { RetryPolicies } from "../utils/RetryPolicies.js";
 import { responseCache } from "../utils/ResponseCache.js";
+import { safeLogger } from "../utils/SafeLogger.js";
+import { piiDetector } from "../utils/PIIDetector.js";
 
 const GROQ_MODELS = {
   fast: "llama-3.1-8b-instant", // Free, very fast
@@ -248,6 +250,24 @@ export class SchedulingAgent {
     // Log passed safety check
     await this.logSafetyMetric(conversationId, userMessage, false, null);
 
+    // PII DETECTION: Check for PII in user message
+    const piiCheck = piiDetector.detectPII(userMessage);
+    if (piiCheck.hasPII) {
+      safeLogger.warn("PII detected in user message", {
+        conversationId,
+        riskLevel: piiCheck.riskLevel,
+        piiTypes: piiCheck.detected.map((d) => d.type).join(", "),
+      });
+
+      // Log PII event
+      await safeLogger.persistPIIEvent(
+        conversationId.toString(),
+        "user_message",
+        piiCheck,
+        conversationId,
+      );
+    }
+
     // CACHE CHECK: Try to get cached response
     const cachedResponse = await responseCache.get(
       userMessage,
@@ -341,6 +361,24 @@ export class SchedulingAgent {
       if (!responseSafety.safe) {
         console.warn(`🛡️ Response safety issue: ${responseSafety.reason}`);
         parsedResponse.message = responseSafety.sanitizedMessage;
+      }
+
+      // PII DETECTION: Check for PII in AI response
+      const aiPiiCheck = piiDetector.detectPII(parsedResponse.message);
+      if (aiPiiCheck.hasPII) {
+        safeLogger.warn("PII detected in AI response", {
+          conversationId,
+          riskLevel: aiPiiCheck.riskLevel,
+          piiTypes: aiPiiCheck.detected.map((d) => d.type).join(", "),
+        });
+
+        // Log PII event
+        await safeLogger.persistPIIEvent(
+          conversationId.toString(),
+          "ai_response",
+          aiPiiCheck,
+          conversationId,
+        );
       }
 
       const finalResponse = {
