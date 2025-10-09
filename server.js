@@ -15,6 +15,7 @@ import analyticsRoutes from "./src/routes/analytics.js";
 import reliabilityRoutes from "./src/routes/reliability.js";
 import lifecycleRoutes from "./src/routes/lifecycle.js";
 import optimizationRoutes from "./src/routes/optimization.js";
+import metricsRoutes from "./src/routes/metrics.js";
 import { errorHandler } from "./src/middleware/errorHandler.js";
 
 // Load environment variables
@@ -69,6 +70,7 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/reliability", reliabilityRoutes);
 app.use("/api/lifecycle", lifecycleRoutes);
 app.use("/api/optimization", optimizationRoutes);
+app.use("/api/metrics", metricsRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
