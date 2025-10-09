@@ -502,5 +502,19 @@ export class IntelligentRouter {
   }
 }
 
-// Singleton instance
-export const intelligentRouter = new IntelligentRouter();
+// Lazy singleton instance - only created when first accessed
+let _instance = null;
+
+export function getIntelligentRouter() {
+  if (!_instance) {
+    _instance = new IntelligentRouter();
+  }
+  return _instance;
+}
+
+// For backward compatibility, create instance lazily
+export const intelligentRouter = {
+  get instance() {
+    return getIntelligentRouter();
+  },
+};
