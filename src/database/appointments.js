@@ -374,3 +374,28 @@ export function initializeWorkflowExecutionsTable(db) {
 
   console.log('✅ Workflow executions table initialized');
 }
+
+export function initializeCanaryEventsTable(db) {
+  db.run(`
+    CREATE TABLE IF NOT EXISTS canary_events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      event_type TEXT NOT NULL,
+      canary_variant TEXT,
+      stable_variant TEXT,
+      data TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  db.run(`
+    CREATE INDEX IF NOT EXISTS idx_canary_events_type
+    ON canary_events(event_type, created_at DESC)
+  `);
+
+  db.run(`
+    CREATE INDEX IF NOT EXISTS idx_canary_events_variant
+    ON canary_events(canary_variant, created_at DESC)
+  `);
+
+  console.log('✅ Canary events table initialized');
+}

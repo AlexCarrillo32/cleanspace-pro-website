@@ -15,7 +15,8 @@ import {
   initializeRetrainingSessionsTable,
   initializeModelVersionsTable,
   initializePIIEventsTable,
-  initializeWorkflowExecutionsTable
+  initializeWorkflowExecutionsTable,
+  initializeCanaryEventsTable
 } from './appointments.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -100,6 +101,7 @@ export async function initializeDatabase() {
         initializeModelVersionsTable(db);
         initializePIIEventsTable(db);
         initializeWorkflowExecutionsTable(db);
+        initializeCanaryEventsTable(db);
 
         db.close((err) => {
           if (err) {
