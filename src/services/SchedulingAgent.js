@@ -6,6 +6,7 @@ import { RetryPolicies } from "../utils/RetryPolicies.js";
 import { responseCache } from "../utils/ResponseCache.js";
 import { safeLogger } from "../utils/SafeLogger.js";
 import { piiDetector } from "../utils/PIIDetector.js";
+import { costPerformanceOptimizer } from "./CostPerformanceOptimizer.js";
 
 const GROQ_MODELS = {
   fast: "llama-3.1-8b-instant", // Free, very fast
@@ -298,19 +299,41 @@ export class SchedulingAgent {
       })),
     ];
 
+    // COST OPTIMIZATION: Optimize request before sending to API
+    const optimization = await costPerformanceOptimizer.optimize(messages, {
+      conversationId,
+      variant: this.variantName,
+    });
+
+    if (!optimization.success) {
+      safeLogger.warn("Cost optimization failed, using original request", {
+        conversationId,
+        error: optimization.error,
+      });
+    }
+
+    // Use optimized messages and model (falls back to original if optimization failed)
+    const optimizedMessages = optimization.success
+      ? optimization.messages
+      : messages;
+    const selectedModel = optimization.success
+      ? optimization.optimizationPlan?.routing?.selectedModel ||
+        this.variant.model
+      : this.variant.model;
+
     try {
       // SAFETY: Call Groq API with circuit breaker + retry policy
       const completion = await this.circuitBreaker.execute(() =>
         this.retryPolicy.executeWithRetry(
           () =>
             this.client.chat.completions.create({
-              model: this.variant.model,
-              messages,
+              model: selectedModel,
+              messages: optimizedMessages,
               temperature: this.variant.temperature,
               max_tokens: 500,
               response_format: { type: "json_object" },
             }),
-          `Groq API (${this.variant.model})`,
+          `Groq API (${selectedModel})`,
         ),
       );
 
@@ -318,18 +341,30 @@ export class SchedulingAgent {
       const assistantMessage = completion.choices[0].message.content;
       const usage = completion.usage;
 
-      // Calculate cost
+      // Calculate cost (use selectedModel, not variant.model)
       const cost = this.calculateCost(
-        this.variant.model,
+        selectedModel,
         usage.prompt_tokens,
         usage.completion_tokens,
       );
+
+      // Update cost optimizer metrics
+      if (optimization.success) {
+        const bookingCompleted = false; // We'll check this from parsedResponse later
+        costPerformanceOptimizer.updateMetrics({
+          cost,
+          latency: responseTime,
+          tokens: usage.total_tokens,
+          bookingCompleted,
+          modelUsed: selectedModel,
+        });
+      }
 
       // Log assistant message with metadata
       await this.logMessage(conversationId, "assistant", assistantMessage, {
         tokens: usage.total_tokens,
         cost,
-        model: this.variant.model,
+        model: selectedModel,
         temperature: this.variant.temperature,
         responseTime,
       });

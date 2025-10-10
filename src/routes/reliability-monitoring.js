@@ -147,7 +147,8 @@ router.get("/health", (req, res) => {
   });
 
   const status = reliabilityMetrics.getOverallStatus(metrics);
-  const statusCode = status === "HEALTHY" ? 200 : status === "DEGRADED" ? 200 : 503;
+  const statusCode =
+    status === "HEALTHY" ? 200 : status === "DEGRADED" ? 200 : 503;
 
   res.status(statusCode).json({
     success: status !== "CRITICAL",

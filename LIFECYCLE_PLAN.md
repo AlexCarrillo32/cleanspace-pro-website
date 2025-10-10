@@ -5,6 +5,7 @@
 This document outlines the comprehensive lifecycle management system for the CleanSpace Pro AI scheduling agent, including drift detection, automated retraining triggers, and model versioning with rollback capabilities.
 
 **Key Features:**
+
 - Automated drift detection across 5 metrics
 - Retraining triggers based on performance degradation
 - Model versioning with seamless rollback
@@ -37,6 +38,7 @@ The drift detection system continuously monitors AI agent performance to detect 
 **Threshold:** 10% drop triggers alert
 
 **Example:**
+
 ```json
 {
   "baselineRate": "75.00%",
@@ -48,6 +50,7 @@ The drift detection system continuously monitors AI agent performance to detect 
 ```
 
 **Causes:**
+
 - Agent not collecting required information
 - Unclear communication patterns
 - New edge cases not handled
@@ -59,6 +62,7 @@ The drift detection system continuously monitors AI agent performance to detect 
 **Threshold:** 15% increase triggers alert
 
 **Example:**
+
 ```json
 {
   "baselineRate": "5.00%",
@@ -70,6 +74,7 @@ The drift detection system continuously monitors AI agent performance to detect 
 ```
 
 **Causes:**
+
 - Complex queries agent can't handle
 - Customer frustration patterns
 - New service types not in training data
@@ -81,6 +86,7 @@ The drift detection system continuously monitors AI agent performance to detect 
 **Threshold:** 20% increase triggers alert
 
 **Example:**
+
 ```json
 {
   "baselineCost": "$0.000130",
@@ -92,6 +98,7 @@ The drift detection system continuously monitors AI agent performance to detect 
 ```
 
 **Causes:**
+
 - Longer conversations (more messages)
 - Switching to more expensive models
 - Inefficient prompt patterns
@@ -102,7 +109,7 @@ The drift detection system continuously monitors AI agent performance to detect 
 
 **Threshold:** 25% increase triggers alert
 
-*(Currently not implemented - requires response time tracking)*
+_(Currently not implemented - requires response time tracking)_
 
 #### 1.5 Action Distribution Drift
 
@@ -111,19 +118,20 @@ The drift detection system continuously monitors AI agent performance to detect 
 **Threshold:** χ² > 9.488 (95% confidence, 4 degrees of freedom)
 
 **Example:**
+
 ```json
 {
   "baselineDistribution": [
-    {"action": "collect_info", "percentage": "40.00%"},
-    {"action": "check_availability", "percentage": "30.00%"},
-    {"action": "book_appointment", "percentage": "25.00%"},
-    {"action": "confirm", "percentage": "5.00%"}
+    { "action": "collect_info", "percentage": "40.00%" },
+    { "action": "check_availability", "percentage": "30.00%" },
+    { "action": "book_appointment", "percentage": "25.00%" },
+    { "action": "confirm", "percentage": "5.00%" }
   ],
   "recentDistribution": [
-    {"action": "collect_info", "percentage": "60.00%"},
-    {"action": "check_availability", "percentage": "20.00%"},
-    {"action": "book_appointment", "percentage": "15.00%"},
-    {"action": "confirm", "percentage": "5.00%"}
+    { "action": "collect_info", "percentage": "60.00%" },
+    { "action": "check_availability", "percentage": "20.00%" },
+    { "action": "book_appointment", "percentage": "15.00%" },
+    { "action": "confirm", "percentage": "5.00%" }
   ],
   "chiSquared": "12.456",
   "drift": true,
@@ -157,11 +165,13 @@ The drift detection system continuously monitors AI agent performance to detect 
 ### API Usage
 
 **Detect Drift:**
+
 ```bash
 curl "http://localhost:3001/api/lifecycle/drift/detect?variant=baseline"
 ```
 
 Response:
+
 ```json
 {
   "variant": "baseline",
@@ -193,11 +203,13 @@ Response:
 ```
 
 **Get Drift History:**
+
 ```bash
 curl "http://localhost:3001/api/lifecycle/drift/history?variant=baseline&limit=10"
 ```
 
 **Get Drift Metrics:**
+
 ```bash
 curl "http://localhost:3001/api/lifecycle/drift/metrics"
 ```
@@ -239,6 +251,7 @@ Automated retraining pipeline triggered by drift detection, using production dat
 #### 2.1 Automatic Triggers
 
 Retraining starts when:
+
 1. **High severity drift** detected in any metric
 2. **Multiple medium severity drifts** (2 or more)
 3. **Cooldown period** has passed (7 days since last retraining)
@@ -246,6 +259,7 @@ Retraining starts when:
 #### 2.2 Manual Triggers
 
 Retraining can be manually started via API:
+
 ```bash
 curl -X POST http://localhost:3001/api/lifecycle/retraining/start \
   -H "Content-Type: application/json" \
@@ -255,11 +269,13 @@ curl -X POST http://localhost:3001/api/lifecycle/retraining/start \
 ### Training Data Collection
 
 **Sources:**
+
 - Last 500 conversations (configurable)
 - Both successful and failed bookings
 - Escalated conversations for failure analysis
 
 **Example:**
+
 ```javascript
 {
   minTrainingExamples: 50,
@@ -272,12 +288,14 @@ curl -X POST http://localhost:3001/api/lifecycle/retraining/start \
 ### Failure Analysis
 
 **Patterns Detected:**
+
 - Pricing issues (customer asks about cost repeatedly)
 - Availability confusion (agent doesn't check calendar)
 - Unclear responses (customer says "I don't understand")
 - Technical errors (API failures, validation errors)
 
 **Example Output:**
+
 ```json
 {
   "totalFailures": 25,
@@ -303,6 +321,7 @@ curl -X POST http://localhost:3001/api/lifecycle/retraining/start \
 Based on failure analysis, the system suggests improvements:
 
 **Example:**
+
 ```json
 {
   "improvements": [
@@ -318,15 +337,17 @@ Based on failure analysis, the system suggests improvements:
 }
 ```
 
-*(In production, this would use GPT-4 to generate the actual new system prompt)*
+_(In production, this would use GPT-4 to generate the actual new system prompt)_
 
 ### Testing Requirements
 
 **Offline Evaluation:**
+
 - Run 10 test cases
 - Must achieve ≥ 0.8 average score
 
 **Shadow Deployment:**
+
 - 100 production samples
 - Must achieve:
   - ≥ 5% success rate improvement
@@ -336,11 +357,13 @@ Based on failure analysis, the system suggests improvements:
 ### API Usage
 
 **Check Triggers:**
+
 ```bash
 curl "http://localhost:3001/api/lifecycle/retraining/check?variant=baseline"
 ```
 
 Response:
+
 ```json
 {
   "shouldRetrain": true,
@@ -351,6 +374,7 @@ Response:
 ```
 
 **Start Retraining:**
+
 ```bash
 curl -X POST http://localhost:3001/api/lifecycle/retraining/start \
   -H "Content-Type: application/json" \
@@ -358,6 +382,7 @@ curl -X POST http://localhost:3001/api/lifecycle/retraining/start \
 ```
 
 Response:
+
 ```json
 {
   "message": "Retraining started - shadow test in progress",
@@ -378,6 +403,7 @@ Response:
 ```
 
 **Finalize Retraining:**
+
 ```bash
 curl -X POST http://localhost:3001/api/lifecycle/retraining/finalize \
   -H "Content-Type: application/json" \
@@ -385,6 +411,7 @@ curl -X POST http://localhost:3001/api/lifecycle/retraining/finalize \
 ```
 
 Response (success):
+
 ```json
 {
   "success": true,
@@ -400,6 +427,7 @@ Response (success):
 ```
 
 Response (failure):
+
 ```json
 {
   "success": false,
@@ -412,6 +440,7 @@ Response (failure):
 ```
 
 **Get Status:**
+
 ```bash
 curl "http://localhost:3001/api/lifecycle/retraining/status"
 ```
@@ -455,6 +484,7 @@ curl -X POST http://localhost:3001/api/lifecycle/versions/register \
 ```
 
 Response:
+
 ```json
 {
   "variantName": "baseline",
@@ -493,6 +523,7 @@ curl -X POST http://localhost:3001/api/lifecycle/versions/rollback \
 ```
 
 Response:
+
 ```json
 {
   "variantName": "baseline",
@@ -511,6 +542,7 @@ curl "http://localhost:3001/api/lifecycle/versions/compare?variantName=baseline&
 ```
 
 Response:
+
 ```json
 {
   "variantName": "baseline",
@@ -535,10 +567,10 @@ Response:
     "escalationRate": 0.03
   },
   "differences": {
-    "bookingRate": 9.33,        // +9.33%
-    "escalationRate": -40.00,   // -40%
-    "avgCost": 15.38,           // +15.38%
-    "avgTokens": 11.11          // +11.11%
+    "bookingRate": 9.33, // +9.33%
+    "escalationRate": -40.0, // -40%
+    "avgCost": 15.38, // +15.38%
+    "avgTokens": 11.11 // +11.11%
   }
 }
 ```
@@ -552,6 +584,7 @@ curl "http://localhost:3001/api/lifecycle/versions/diff?variantName=baseline&ver
 ```
 
 Response:
+
 ```json
 {
   "variantName": "baseline",
@@ -589,6 +622,7 @@ curl -X POST http://localhost:3001/api/lifecycle/versions/tag \
 ```
 
 Common tags:
+
 - `production` - Currently deployed version
 - `stable` - Tested and verified
 - `experimental` - Under testing
@@ -601,6 +635,7 @@ curl "http://localhost:3001/api/lifecycle/versions/list"
 ```
 
 Response:
+
 ```json
 {
   "variants": [
@@ -691,6 +726,7 @@ done
 ```
 
 **Action Items:**
+
 - If drift detected with `severity: "low"` → Monitor
 - If drift detected with `severity: "medium"` → Investigate causes
 - If drift detected with `severity: "high"` → Trigger retraining
@@ -720,6 +756,7 @@ curl -X POST .../lifecycle/retraining/finalize -d '{"sessionId": "..."}'
 ```
 
 **Success Criteria:**
+
 - ✅ Booking rate improved by ≥ 5%
 - ✅ Escalation rate decreased
 - ✅ Cost increase ≤ 10%
@@ -769,28 +806,31 @@ curl -X POST .../lifecycle/versions/tag -d '{
 
 ### Key Metrics
 
-| Metric | Description | Alert Threshold |
-|--------|-------------|-----------------|
-| Drift detection frequency | Times drift detected per week | > 2 per week |
-| Retraining success rate | % of retrainings that get promoted | < 50% |
-| Version rollback frequency | Rollbacks per month | > 1 per month |
-| Booking rate | % of conversations resulting in bookings | < 70% |
-| Escalation rate | % of conversations escalated to human | > 10% |
-| Avg cost per conversation | USD per conversation | > $0.002 |
+| Metric                     | Description                              | Alert Threshold |
+| -------------------------- | ---------------------------------------- | --------------- |
+| Drift detection frequency  | Times drift detected per week            | > 2 per week    |
+| Retraining success rate    | % of retrainings that get promoted       | < 50%           |
+| Version rollback frequency | Rollbacks per month                      | > 1 per month   |
+| Booking rate               | % of conversations resulting in bookings | < 70%           |
+| Escalation rate            | % of conversations escalated to human    | > 10%           |
+| Avg cost per conversation  | USD per conversation                     | > $0.002        |
 
 ### Dashboard Endpoints
 
 **Overall Status:**
+
 ```bash
 curl "http://localhost:3001/api/lifecycle/status"
 ```
 
 **Drift Dashboard:**
+
 ```bash
 curl "http://localhost:3001/api/lifecycle/drift/metrics"
 ```
 
 **Retraining Dashboard:**
+
 ```bash
 curl "http://localhost:3001/api/lifecycle/retraining/status"
 ```
@@ -802,6 +842,7 @@ curl "http://localhost:3001/api/lifecycle/retraining/status"
 ### 7.1 Retraining Frequency
 
 **Recommended:**
+
 - Minimum: Every 2 weeks if no drift
 - Maximum: Once per week
 - Cooldown: 7 days between retrainings
@@ -811,11 +852,13 @@ curl "http://localhost:3001/api/lifecycle/retraining/status"
 ### 7.2 Version Management
 
 **Tags:**
+
 - Tag stable versions as `production`
 - Tag previous production as `rollback`
 - Tag experimental versions as `experimental`
 
 **Retention:**
+
 - Keep all versions indefinitely (low storage cost)
 - Active versions: 1 per variant
 - Rollback-ready versions: Last 3 versions
@@ -823,12 +866,14 @@ curl "http://localhost:3001/api/lifecycle/retraining/status"
 ### 7.3 Testing Rigor
 
 **Before Promotion:**
+
 - ✅ Offline evaluation score ≥ 0.8
 - ✅ Shadow test with 100+ samples
 - ✅ No high severity regressions
 - ✅ Manual spot check of 10 conversations
 
 **After Promotion:**
+
 - ✅ Monitor for 24 hours
 - ✅ Check escalation rate
 - ✅ Validate booking rate
@@ -841,21 +886,25 @@ curl "http://localhost:3001/api/lifecycle/retraining/status"
 ### Issue: Drift detected but no obvious cause
 
 **Diagnosis:**
+
 1. Check drift history: `curl .../drift/history`
 2. Analyze failure patterns in database
 3. Review recent conversations manually
 
 **Resolution:**
+
 - If pattern unclear, wait for more data
 - If pattern clear, trigger manual retraining
 
 ### Issue: Retraining promoted but performance worse
 
 **Diagnosis:**
+
 1. Compare versions: `curl .../versions/compare`
 2. Check shadow analysis for false positives
 
 **Resolution:**
+
 1. Immediate rollback: `curl -X POST .../versions/rollback`
 2. Investigate shadow deployment methodology
 3. Increase minimum samples for promotion
@@ -863,10 +912,12 @@ curl "http://localhost:3001/api/lifecycle/retraining/status"
 ### Issue: Too many retrainings triggered
 
 **Diagnosis:**
+
 1. Check drift thresholds in config
 2. Verify baseline window is appropriate
 
 **Resolution:**
+
 1. Increase drift thresholds (e.g., 15% instead of 10%)
 2. Increase cooldown period (e.g., 14 days instead of 7)
 3. Require multiple consecutive drift detections
@@ -895,41 +946,41 @@ curl "http://localhost:3001/api/lifecycle/retraining/status"
 
 ### Drift Detection
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/lifecycle/drift/detect` | GET | Detect drift for variant |
-| `/api/lifecycle/drift/history` | GET | Get drift detection history |
-| `/api/lifecycle/drift/metrics` | GET | Get drift detector metrics |
+| Endpoint                       | Method | Description                 |
+| ------------------------------ | ------ | --------------------------- |
+| `/api/lifecycle/drift/detect`  | GET    | Detect drift for variant    |
+| `/api/lifecycle/drift/history` | GET    | Get drift detection history |
+| `/api/lifecycle/drift/metrics` | GET    | Get drift detector metrics  |
 
 ### Retraining
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/lifecycle/retraining/check` | GET | Check if retraining should trigger |
-| `/api/lifecycle/retraining/start` | POST | Start retraining process |
-| `/api/lifecycle/retraining/finalize` | POST | Finalize retraining after shadow test |
-| `/api/lifecycle/retraining/status` | GET | Get retraining status |
-| `/api/lifecycle/retraining/history` | GET | Get retraining history |
+| Endpoint                             | Method | Description                           |
+| ------------------------------------ | ------ | ------------------------------------- |
+| `/api/lifecycle/retraining/check`    | GET    | Check if retraining should trigger    |
+| `/api/lifecycle/retraining/start`    | POST   | Start retraining process              |
+| `/api/lifecycle/retraining/finalize` | POST   | Finalize retraining after shadow test |
+| `/api/lifecycle/retraining/status`   | GET    | Get retraining status                 |
+| `/api/lifecycle/retraining/history`  | GET    | Get retraining history                |
 
 ### Version Management
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/lifecycle/versions/register` | POST | Register new version |
-| `/api/lifecycle/versions/activate` | POST | Activate specific version |
-| `/api/lifecycle/versions/rollback` | POST | Rollback to previous version |
-| `/api/lifecycle/versions/active` | GET | Get active version |
-| `/api/lifecycle/versions/history` | GET | Get version history |
-| `/api/lifecycle/versions/compare` | GET | Compare two versions |
-| `/api/lifecycle/versions/diff` | GET | Get prompt diff |
-| `/api/lifecycle/versions/tag` | POST | Tag a version |
-| `/api/lifecycle/versions/list` | GET | List all variants |
+| Endpoint                           | Method | Description                  |
+| ---------------------------------- | ------ | ---------------------------- |
+| `/api/lifecycle/versions/register` | POST   | Register new version         |
+| `/api/lifecycle/versions/activate` | POST   | Activate specific version    |
+| `/api/lifecycle/versions/rollback` | POST   | Rollback to previous version |
+| `/api/lifecycle/versions/active`   | GET    | Get active version           |
+| `/api/lifecycle/versions/history`  | GET    | Get version history          |
+| `/api/lifecycle/versions/compare`  | GET    | Compare two versions         |
+| `/api/lifecycle/versions/diff`     | GET    | Get prompt diff              |
+| `/api/lifecycle/versions/tag`      | POST   | Tag a version                |
+| `/api/lifecycle/versions/list`     | GET    | List all variants            |
 
 ### Overall Status
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/lifecycle/status` | GET | Overall lifecycle status |
+| Endpoint                | Method | Description              |
+| ----------------------- | ------ | ------------------------ |
+| `/api/lifecycle/status` | GET    | Overall lifecycle status |
 
 ---
 

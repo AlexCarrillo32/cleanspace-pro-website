@@ -101,6 +101,7 @@ curl http://localhost:3001/api/analytics/experiments/offline_eval | jq
 ## Cost
 
 **Essentially free with Groq:**
+
 - Baseline: $0.03 per 1,000 bookings
 - Professional: $0.39 per 1,000 bookings
 

@@ -350,7 +350,7 @@ export class EvaluationService {
     return this.generateReport(results, variant);
   }
 
-  evaluateResponse(response, expectedOutcome, category) {
+  evaluateResponse(response, expectedOutcome, _category) {
     let score = 0;
     const checks = Object.keys(expectedOutcome);
 

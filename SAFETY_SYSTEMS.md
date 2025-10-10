@@ -19,31 +19,37 @@ Complete safety infrastructure for the AI scheduling agent with 5-layer protecti
 ### Features
 
 ✅ **Prompt Injection Detection**
+
 - Detects "ignore previous instructions" patterns
 - Blocks system prompt override attempts
 - Prevents instruction manipulation
 
 ✅ **Jailbreak Detection**
+
 - Catches "DAN mode", "developer mode" attempts
 - Blocks "evil mode" or "unrestricted" requests
 - Prevents ethics bypass attempts
 
 ✅ **Toxic Content Filtering**
+
 - Blocks harmful/violent content
 - Filters dangerous instructions
 - Maintains professional conversation
 
 ✅ **Off-Topic Detection**
+
 - Blocks requests outside cleaning services
 - Prevents code writing/math solving requests
 - Keeps AI focused on booking
 
 ✅ **PII Exposure Prevention**
+
 - Blocks customer data requests
 - Prevents database dump attempts
 - Protects sensitive information
 
 ✅ **Response Safety**
+
 - Prevents system prompt leaks
 - Sanitizes assistant responses
 - Blocks training data exposure
@@ -77,7 +83,7 @@ Complete safety infrastructure for the AI scheduling agent with 5-layer protecti
 ### Usage
 
 ```javascript
-import { contentSafety } from '../utils/AIContentSafety.js';
+import { contentSafety } from "../utils/AIContentSafety.js";
 
 // Check user input
 const safetyCheck = contentSafety.checkSafety(userMessage);
@@ -131,9 +137,9 @@ const metrics = contentSafety.getMetrics();
 
 ```javascript
 const circuitBreaker = new CircuitBreaker({
-  failureThreshold: 5,        // Open after 5 failures
-  recoveryTimeout: 60000,     // Wait 60s before retry
-  monitoringPeriod: 10000,    // 10s monitoring window
+  failureThreshold: 5, // Open after 5 failures
+  recoveryTimeout: 60000, // Wait 60s before retry
+  monitoringPeriod: 10000, // 10s monitoring window
 });
 ```
 
@@ -178,13 +184,13 @@ Request 21: Success → CLOSED (recovered!)
 
 ```javascript
 // Aggressive: Quick retries (5 max, 500ms-8s delays)
-RetryPolicies.aggressive
+RetryPolicies.aggressive;
 
 // Standard: Balanced (3 max, 1s-32s delays)
-RetryPolicies.standard
+RetryPolicies.standard;
 
 // Conservative: Careful (2 max, 2s-60s delays)
-RetryPolicies.conservative
+RetryPolicies.conservative;
 ```
 
 ### Retryable Errors
@@ -199,12 +205,12 @@ RetryPolicies.conservative
 ### Usage
 
 ```javascript
-import { RetryPolicies } from '../utils/RetryPolicies.js';
+import { RetryPolicies } from "../utils/RetryPolicies.js";
 
 // Use standard policy
 const result = await RetryPolicies.standard.executeWithRetry(
   () => groqAPI.call(),
-  'Groq API'
+  "Groq API",
 );
 
 // Custom policy
@@ -212,7 +218,7 @@ const customRetry = new RetryPolicy({
   maxRetries: 5,
   initialDelay: 500,
   maxDelay: 10000,
-  retryBudget: 20,       // Max 20 retries per minute
+  retryBudget: 20, // Max 20 retries per minute
   budgetWindow: 60000,
 });
 ```
@@ -259,16 +265,16 @@ Shadow Variant (professional) ──→ Log comparison (async) 📊
 ### Usage
 
 ```javascript
-import { shadowDeployment } from '../utils/ShadowDeployment.js';
+import { shadowDeployment } from "../utils/ShadowDeployment.js";
 
 // Enable shadow testing
-shadowDeployment.enable('professional', 100); // 100% traffic
+shadowDeployment.enable("professional", 100); // 100% traffic
 
 // Execute with shadow
 const result = await shadowDeployment.executeWithShadow(
-  () => primaryAgent.chat(message),      // Always used
-  () => shadowAgent.chat(message),       // Logged, never returned
-  { userId: '123', sessionId: 'abc' }
+  () => primaryAgent.chat(message), // Always used
+  () => shadowAgent.chat(message), // Logged, never returned
+  { userId: "123", sessionId: "abc" },
 );
 
 // Get metrics
@@ -318,6 +324,7 @@ CREATE TABLE shadow_comparisons (
 ### Metrics Collected
 
 **Content Safety:**
+
 - Total safety checks
 - Blocked requests (by type)
 - Prompt injections
@@ -327,12 +334,14 @@ CREATE TABLE shadow_comparisons (
 - PII exposure attempts
 
 **Circuit Breaker:**
+
 - Total requests
 - Circuit opens/closes
 - Current state
 - Failure rate
 
 **Retry Policy:**
+
 - Total attempts
 - Total retries
 - Success after retry
@@ -340,6 +349,7 @@ CREATE TABLE shadow_comparisons (
 - Budget exceeded count
 
 **Shadow Deployment:**
+
 - Shadow executions
 - Response differences
 - Performance comparisons
@@ -472,7 +482,7 @@ await agent.chat(convId, "test"); // ❌ Circuit breaker is OPEN
 ### Test Shadow Deployment
 
 ```javascript
-shadowDeployment.enable('professional', 100);
+shadowDeployment.enable("professional", 100);
 
 // Make 100 requests
 for (let i = 0; i < 100; i++) {

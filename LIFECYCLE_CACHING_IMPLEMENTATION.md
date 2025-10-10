@@ -20,6 +20,7 @@ Added in-memory caching to the DriftDetector service to avoid recalculating drif
 **File**: [src/services/DriftDetector.js](src/services/DriftDetector.js)
 
 #### Features:
+
 - **5-minute cache TTL** - Drift results cached for 5 minutes
 - **Per-variant caching** - Each variant (baseline, professional, casual) has separate cache
 - **Cache metrics** - Track cache hits, misses, and hit rate
@@ -29,10 +30,9 @@ Added in-memory caching to the DriftDetector service to avoid recalculating drif
 
 ```javascript
 // Cache configuration
-cacheTTL: 5 * 60 * 1000, // 5 minutes
-
-// In-memory cache
-this.driftCache = new Map();
+cacheTTL: (5 * 60 * 1000, // 5 minutes
+  // In-memory cache
+  (this.driftCache = new Map()));
 
 // Metrics tracking
 this.metrics = {
@@ -62,6 +62,7 @@ Return fresh result
 ```
 
 #### New Methods:
+
 - `getCachedDrift(variant)` - Retrieve cached drift result
 - `cacheDriftResult(variant, result)` - Store drift result in cache
 - `clearCache(variant)` - Clear cache for specific variant or all
@@ -87,6 +88,7 @@ curl -X DELETE "http://localhost:3000/api/lifecycle/drift/cache"
 ```
 
 Response:
+
 ```json
 {
   "success": true,
@@ -103,6 +105,7 @@ The drift metrics endpoint now includes cache statistics:
 **GET /api/lifecycle/drift/metrics**
 
 Response:
+
 ```json
 {
   "checksPerformed": 1,
@@ -146,11 +149,7 @@ Response:
 {
   "variant": "baseline",
   "overallDrift": true,
-  "drifts": [
-    "booking_rate",
-    "escalation_rate",
-    "cost"
-  ],
+  "drifts": ["booking_rate", "escalation_rate", "cost"],
   "metrics": {
     "bookingRate": {
       "baselineRate": "68.12%",
@@ -185,22 +184,20 @@ Response:
 {
   "shouldRetrain": true,
   "reason": "Drift detected",
-  "triggers": [
-    "booking_rate",
-    "escalation_rate",
-    "cost"
-  ]
+  "triggers": ["booking_rate", "escalation_rate", "cost"]
 }
 ```
 
 ### Caching Performance ✅
 
 **Test Sequence**:
+
 1. First request → Cache miss → Calculate drift
 2. Second request → Cache hit → Return cached result
 3. Cache metrics → 50% hit rate after 2 requests
 
 **Performance Improvement**:
+
 - Cached requests: **~50ms** (instant from memory)
 - Uncached requests: **~200-500ms** (database queries + calculations)
 - **~4-10x speedup** for cached results
@@ -218,6 +215,7 @@ ORDER BY created_at DESC LIMIT 3;
 ```
 
 **Results**:
+
 ```
 3 | baseline | booking_rate,escalation_rate,cost | high | 2025-10-10 02:46:35
 2 | baseline | booking_rate,escalation_rate,cost | high | 2025-10-10 02:41:56
@@ -245,6 +243,7 @@ ORDER BY created_at DESC;
 ```
 
 **Results**:
+
 ```
 2 | baseline | 0 | 2025-10-10 01:02:51
 1 | baseline | 0 | 2025-10-10 01:01:48
@@ -257,26 +256,29 @@ ORDER BY created_at DESC;
 ## API Endpoints Summary
 
 ### Drift Detection
-| Endpoint | Method | Description | Caching |
-|----------|--------|-------------|---------|
-| `/api/lifecycle/drift/detect` | GET | Detect drift for variant | ✅ Yes |
-| `/api/lifecycle/drift/history` | GET | Get drift detection history | - |
-| `/api/lifecycle/drift/metrics` | GET | Get drift detector metrics | - |
-| `/api/lifecycle/drift/cache` | DELETE | Clear drift cache | - |
+
+| Endpoint                       | Method | Description                 | Caching |
+| ------------------------------ | ------ | --------------------------- | ------- |
+| `/api/lifecycle/drift/detect`  | GET    | Detect drift for variant    | ✅ Yes  |
+| `/api/lifecycle/drift/history` | GET    | Get drift detection history | -       |
+| `/api/lifecycle/drift/metrics` | GET    | Get drift detector metrics  | -       |
+| `/api/lifecycle/drift/cache`   | DELETE | Clear drift cache           | -       |
 
 ### Retraining
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/lifecycle/retraining/check` | GET | Check if retraining needed |
-| `/api/lifecycle/retraining/start` | POST | Start retraining process |
-| `/api/lifecycle/retraining/finalize` | POST | Finalize retraining |
-| `/api/lifecycle/retraining/status` | GET | Get retraining status |
+
+| Endpoint                             | Method | Description                |
+| ------------------------------------ | ------ | -------------------------- |
+| `/api/lifecycle/retraining/check`    | GET    | Check if retraining needed |
+| `/api/lifecycle/retraining/start`    | POST   | Start retraining process   |
+| `/api/lifecycle/retraining/finalize` | POST   | Finalize retraining        |
+| `/api/lifecycle/retraining/status`   | GET    | Get retraining status      |
 
 ---
 
 ## Cache Configuration
 
 ### Current Settings:
+
 ```javascript
 {
   cacheTTL: 5 * 60 * 1000, // 5 minutes
@@ -287,6 +289,7 @@ ORDER BY created_at DESC;
 ```
 
 ### Rationale:
+
 - **5-minute TTL**: Balances freshness with performance
 - **Hourly checks**: Recommended interval for automated drift monitoring
 - **7-day baseline**: Sufficient history for statistical comparison
@@ -351,19 +354,19 @@ curl "http://localhost:3000/api/lifecycle/drift/history?variant=baseline&limit=5
 
 ### Drift Detection Performance:
 
-| Operation | Time | Notes |
-|-----------|------|-------|
-| Cache hit | ~5ms | In-memory lookup |
-| Cache miss (50 samples) | ~200ms | DB queries + calculations |
-| Cache miss (200 samples) | ~500ms | More data to analyze |
+| Operation                | Time   | Notes                     |
+| ------------------------ | ------ | ------------------------- |
+| Cache hit                | ~5ms   | In-memory lookup          |
+| Cache miss (50 samples)  | ~200ms | DB queries + calculations |
+| Cache miss (200 samples) | ~500ms | More data to analyze      |
 
 ### Resource Usage:
 
-| Resource | Usage | Notes |
-|----------|-------|-------|
-| Memory per cache entry | ~5KB | JSON drift analysis |
+| Resource                    | Usage       | Notes                       |
+| --------------------------- | ----------- | --------------------------- |
+| Memory per cache entry      | ~5KB        | JSON drift analysis         |
 | Database queries (uncached) | 4-6 queries | Baseline + recent + actions |
-| Database queries (cached) | 0 queries | No DB access |
+| Database queries (cached)   | 0 queries   | No DB access                |
 
 ---
 
@@ -418,16 +421,19 @@ done
 ## Benefits
 
 ### For Performance:
+
 - **~10x faster** for repeated drift checks
 - **Reduced database load** for frequent monitoring
 - **Lower CPU usage** by avoiding recalculation
 
 ### For Operations:
+
 - **Faster dashboards** - Metrics refresh without delay
 - **Better monitoring** - Can poll frequently without overhead
 - **Predictable latency** - Cached responses are instant
 
 ### For Cost:
+
 - **Fewer database queries** - Saves on DB compute
 - **Lower API calls** - If using external services
 - **Efficient resource usage** - Memory cache is lightweight
@@ -437,16 +443,19 @@ done
 ## Next Steps (Optional)
 
 ### Phase 1: Enhanced Caching (Future)
+
 - [ ] Redis/Memcached for distributed caching
 - [ ] Cache warming for scheduled drift checks
 - [ ] Configurable TTL per variant
 
 ### Phase 2: Advanced Monitoring (Future)
+
 - [ ] Real-time cache metrics dashboard
 - [ ] Alert on low cache hit rate
 - [ ] Auto-adjust TTL based on drift frequency
 
 ### Phase 3: Production Optimizations (Future)
+
 - [ ] Cache pre-computation during off-peak hours
 - [ ] Incremental drift calculation
 - [ ] Approximate drift for instant responses

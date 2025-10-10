@@ -59,7 +59,7 @@ export class AIContentSafety {
 
     // PII exposure attempts
     this.piiExposurePatterns = [
-      /give\s+me\s+(all|someone\'s)\s+(email|phone|address|ssn|credit card)/gi,
+      /give\s+me\s+(all|someone's)\s+(email|phone|address|ssn|credit card)/gi,
       /list\s+(all|customer|user)\s+(emails|phones|addresses|data)/gi,
       /show\s+me\s+(database|user|customer)\s+records/gi,
     ];

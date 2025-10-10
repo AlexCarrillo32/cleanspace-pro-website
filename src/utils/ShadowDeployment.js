@@ -90,13 +90,12 @@ export class ShadowDeployment {
    */
   async executeShadow(shadowFn, primaryResult, primaryDuration, context) {
     const shadowStart = Date.now();
-    let shadowResult, shadowError;
+    let shadowResult;
 
     try {
       shadowResult = await shadowFn();
     } catch (error) {
       this.metrics.shadowErrors++;
-      shadowError = error;
       console.error(`🌒 Shadow variant error: ${error.message}`);
     }
 

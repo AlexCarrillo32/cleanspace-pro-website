@@ -24,12 +24,14 @@ const MODEL_CONFIGS = {
     capabilities: ["booking", "info_collection", "simple_queries"],
   },
   balanced: {
-    model: "llama-3.1-70b-versatile",
+    // NOTE: Using same model as fast since llama-3.1-70b-versatile was decommissioned
+    // When a larger model is available, update this config for cost optimization
+    model: "llama-3.1-8b-instant",
     costPerToken: {
-      input: 0.59 / 1000000,
-      output: 0.79 / 1000000,
+      input: 0.05 / 1000000,
+      output: 0.08 / 1000000,
     },
-    avgLatency: 1800, // ms
+    avgLatency: 600, // ms (same as fast for now)
     complexity: "complex",
     capabilities: [
       "booking",
@@ -207,7 +209,7 @@ export class IntelligentRouter {
   /**
    * Cost-optimized routing (default)
    */
-  selectCostOptimized(complexity, context) {
+  selectCostOptimized(complexity, _context) {
     // Always use fast model for simple queries
     if (complexity.level === "simple") {
       return "fast";
@@ -228,7 +230,7 @@ export class IntelligentRouter {
   /**
    * Performance-optimized routing
    */
-  selectPerformanceOptimized(complexity, context) {
+  selectPerformanceOptimized(complexity, _context) {
     // Use balanced model for medium and complex
     if (complexity.level !== "simple") {
       return "balanced";
@@ -241,7 +243,7 @@ export class IntelligentRouter {
   /**
    * Balanced routing
    */
-  selectBalanced(complexity, context) {
+  selectBalanced(complexity, _context) {
     // Fast for simple
     if (complexity.level === "simple") {
       return "fast";

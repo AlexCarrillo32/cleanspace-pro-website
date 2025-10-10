@@ -5,6 +5,7 @@
 This document outlines the comprehensive reliability infrastructure for the CleanSpace Pro AI scheduling agent. The system achieves **99.9% uptime** through intelligent caching, circuit breakers, retry policies, and shadow deployments.
 
 **Key Metrics:**
+
 - Response time: <100ms (cached), <2s (API calls)
 - Cost reduction: 80%+ through caching
 - Zero-downtime deployments via shadow testing
@@ -29,11 +30,13 @@ User Request → Safety Check → Cache Check → [Hit: Return cached] → [Miss
 #### 1.1 Dual Matching Strategy
 
 **Exact Match (Primary)**
+
 - SHA-256 hash of normalized user message
 - Instant cache hits (<10ms)
 - Perfect for repeat queries
 
 **Semantic Similarity (Fallback)**
+
 - Jaccard similarity on word sets
 - 85% similarity threshold (configurable)
 - Handles message variations
@@ -50,12 +53,13 @@ User Request → Safety Check → Cache Check → [Hit: Return cached] → [Miss
 
 #### 1.3 Cost Savings
 
-| Model | API Cost | Cache Hit Savings |
-|-------|----------|-------------------|
-| llama-3.1-8b-instant | $0.000130/call | 100% saved |
-| llama-3.1-70b-versatile | $0.001380/call | 100% saved |
+| Model                   | API Cost       | Cache Hit Savings |
+| ----------------------- | -------------- | ----------------- |
+| llama-3.1-8b-instant    | $0.000130/call | 100% saved        |
+| llama-3.1-70b-versatile | $0.001380/call | 100% saved        |
 
 **At 1,000 bookings/month with 60% cache hit rate:**
+
 - Without cache: $130 (8B) or $1,380 (70B)
 - With cache: $52 (8B) or $552 (70B)
 - **Savings: $78-$828/month**
@@ -91,6 +95,7 @@ CREATE TABLE response_cache (
 #### 1.6 API Usage
 
 **Check Cache (automatic in SchedulingAgent)**
+
 ```javascript
 const cachedResponse = await responseCache.get(userMessage, variant);
 if (cachedResponse) {
@@ -100,17 +105,19 @@ if (cachedResponse) {
 ```
 
 **Save to Cache (automatic after API call)**
+
 ```javascript
 await responseCache.set(
   userMessage,
   response,
   variant,
   { model, tokens, cost, responseTime },
-  3600000  // 1 hour TTL
+  3600000, // 1 hour TTL
 );
 ```
 
 **Clear Cache**
+
 ```bash
 # Clear all cache
 curl -X POST http://localhost:3001/api/reliability/cache/clear
@@ -125,11 +132,13 @@ curl -X POST http://localhost:3001/api/reliability/cache/clear-expired
 ```
 
 **Cache Metrics**
+
 ```bash
 curl http://localhost:3001/api/reliability/cache/stats
 ```
 
 Response:
+
 ```json
 {
   "overall": {
@@ -173,6 +182,7 @@ Exponential backoff with jitter ensures resilient API calls without overwhelming
 #### 2.1 Retry Strategy
 
 **Exponential Backoff Formula:**
+
 ```
 delay = min(initialDelay * backoffMultiplier^(attempt-1), maxDelay)
 jitter = delay * jitterFactor * (random() - 0.5) * 2
@@ -180,6 +190,7 @@ finalDelay = delay + jitter
 ```
 
 **Standard Policy Delays:**
+
 - Attempt 1: 1000ms ± 100ms
 - Attempt 2: 2000ms ± 200ms
 - Attempt 3: 4000ms ± 400ms
@@ -225,6 +236,7 @@ Prevents retry storms by limiting retries per time window:
 ```
 
 If budget exceeded:
+
 ```
 ⛔ Retry budget exceeded - too many retries in time window
 ```
@@ -232,12 +244,14 @@ If budget exceeded:
 #### 2.4 Retryable Errors
 
 **Will Retry:**
+
 - Network errors: `ECONNREFUSED`, `ENOTFOUND`, `ETIMEDOUT`
 - Rate limits: HTTP 429
 - Server errors: HTTP 5xx
 - Timeout errors
 
 **Won't Retry:**
+
 - Client errors: HTTP 4xx (except 429)
 - Authentication errors: HTTP 401, 403
 - Validation errors: HTTP 400
@@ -249,6 +263,7 @@ curl http://localhost:3001/api/reliability/metrics
 ```
 
 Response includes:
+
 ```json
 {
   "retryPolicy": {
@@ -297,6 +312,7 @@ CLOSED (Normal) → [5 failures] → OPEN (Failing) → [60s timeout] → HALF_O
 #### 3.3 Behavior
 
 **When CLOSED:**
+
 ```javascript
 ✅ Request succeeds → Continue CLOSED
 ❌ Request fails → Increment failure count
@@ -304,6 +320,7 @@ CLOSED (Normal) → [5 failures] → OPEN (Failing) → [60s timeout] → HALF_O
 ```
 
 **When OPEN:**
+
 ```javascript
 🔴 All requests rejected immediately
 ⏰ After 60s → Transition to HALF_OPEN
@@ -311,6 +328,7 @@ Error: "Circuit breaker is OPEN - service temporarily unavailable"
 ```
 
 **When HALF_OPEN:**
+
 ```javascript
 🔄 Allow 1 test request
 ✅ Success → Reset failures, transition to CLOSED
@@ -336,6 +354,7 @@ curl http://localhost:3001/api/reliability/metrics
 ```
 
 Response:
+
 ```json
 {
   "circuitBreaker": {
@@ -370,6 +389,7 @@ User Request → Primary Variant (return to user)
 #### 4.1 Shadow Orchestrator
 
 **Start Shadow Deployment:**
+
 ```bash
 curl -X POST http://localhost:3001/api/reliability/shadow/start \
   -H "Content-Type: application/json" \
@@ -383,6 +403,7 @@ curl -X POST http://localhost:3001/api/reliability/shadow/start \
 ```
 
 **Stop Shadow Deployment:**
+
 ```bash
 curl -X POST http://localhost:3001/api/reliability/shadow/stop
 ```
@@ -402,12 +423,14 @@ curl -X POST .../shadow/start -d '{"trafficPercent": 10}'
 #### 4.3 Comparison Metrics
 
 **What's Compared:**
+
 - Response text similarity (Jaccard)
 - Action differences (book_appointment, collect_info, etc.)
 - Performance delta (latency)
 - Cost delta
 
 **Database Schema:**
+
 ```sql
 CREATE TABLE shadow_comparisons (
   id INTEGER PRIMARY KEY,
@@ -426,11 +449,13 @@ CREATE TABLE shadow_comparisons (
 #### 4.4 Analysis API
 
 **Get Status:**
+
 ```bash
 curl http://localhost:3001/api/reliability/shadow/status
 ```
 
 Response:
+
 ```json
 {
   "active": true,
@@ -444,11 +469,13 @@ Response:
 ```
 
 **Analyze Results:**
+
 ```bash
 curl http://localhost:3001/api/reliability/shadow/analysis
 ```
 
 Response:
+
 ```json
 {
   "shadowVariant": "professional",
@@ -466,17 +493,20 @@ Response:
 #### 4.5 Promotion Criteria
 
 **Check if Shadow Can Be Promoted:**
+
 ```bash
 curl http://localhost:3001/api/reliability/shadow/promotion-check
 ```
 
 **Criteria:**
+
 - Minimum samples: 50 (configurable)
 - Max error rate: 5%
 - Max cost increase: 10%
 - Min performance improvement: 5%
 
 Response:
+
 ```json
 {
   "shouldPromote": true,
@@ -492,11 +522,13 @@ Response:
 ```
 
 **Promote Shadow to Primary:**
+
 ```bash
 curl -X POST http://localhost:3001/api/reliability/shadow/promote
 ```
 
 Response:
+
 ```json
 {
   "message": "Shadow variant promoted to primary",
@@ -510,6 +542,7 @@ Response:
 ```
 
 **Rollback Shadow:**
+
 ```bash
 curl -X POST http://localhost:3001/api/reliability/shadow/rollback
 ```
@@ -586,6 +619,7 @@ curl http://localhost:3001/api/reliability/health
 ```
 
 Response:
+
 ```json
 {
   "status": "healthy",
@@ -620,6 +654,7 @@ curl http://localhost:3001/api/reliability/metrics
 ```
 
 Response includes:
+
 - Cache metrics (hits, misses, cost saved)
 - Safety metrics (blocks, violations)
 - Conversation metrics (bookings, escalations)
@@ -632,6 +667,7 @@ curl http://localhost:3001/api/reliability/safety
 ```
 
 Response:
+
 ```json
 {
   "summary": [
@@ -661,36 +697,37 @@ Response:
 
 ### 7.1 Response Times
 
-| Scenario | Latency | Cost |
-|----------|---------|------|
-| Cache hit (exact) | <10ms | $0 |
-| Cache hit (semantic) | <50ms | $0 |
-| Cache miss (8B model) | 500-800ms | $0.00013 |
+| Scenario               | Latency     | Cost     |
+| ---------------------- | ----------- | -------- |
+| Cache hit (exact)      | <10ms       | $0       |
+| Cache hit (semantic)   | <50ms       | $0       |
+| Cache miss (8B model)  | 500-800ms   | $0.00013 |
 | Cache miss (70B model) | 1500-2000ms | $0.00138 |
-| Circuit breaker OPEN | <1ms | $0 |
+| Circuit breaker OPEN   | <1ms        | $0       |
 
 ### 7.2 Reliability Metrics
 
-| Metric | Target | Actual |
-|--------|--------|--------|
-| Uptime | 99.9% | 99.95% |
-| Cache hit rate | 60% | 75% |
-| API error rate | <1% | 0.3% |
-| Retry success rate | >90% | 93% |
-| Shadow comparison time | <5s | 2.1s |
+| Metric                 | Target | Actual |
+| ---------------------- | ------ | ------ |
+| Uptime                 | 99.9%  | 99.95% |
+| Cache hit rate         | 60%    | 75%    |
+| API error rate         | <1%    | 0.3%   |
+| Retry success rate     | >90%   | 93%    |
+| Shadow comparison time | <5s    | 2.1s   |
 
 ### 7.3 Cost Analysis
 
 **Monthly Costs (1,000 bookings/month, 6 messages/booking):**
 
-| Configuration | Cost/Month | Savings |
-|---------------|------------|---------|
-| No caching (8B) | $780 | - |
-| With caching (8B) | $195 | 75% |
-| No caching (70B) | $8,280 | - |
-| With caching (70B) | $2,070 | 75% |
+| Configuration      | Cost/Month | Savings |
+| ------------------ | ---------- | ------- |
+| No caching (8B)    | $780       | -       |
+| With caching (8B)  | $195       | 75%     |
+| No caching (70B)   | $8,280     | -       |
+| With caching (70B) | $2,070     | 75%     |
 
 **Cache hit rate impact:**
+
 - 50% hit rate: 50% cost reduction
 - 75% hit rate: 75% cost reduction
 - 90% hit rate: 90% cost reduction
@@ -721,6 +758,7 @@ Response:
 ### 8.3 Operational Runbook
 
 **Cache Maintenance (Weekly):**
+
 ```bash
 # Clear expired entries
 curl -X POST http://localhost:3001/api/reliability/cache/clear-expired
@@ -730,6 +768,7 @@ curl http://localhost:3001/api/reliability/cache/stats
 ```
 
 **Shadow Deployment (Before Variant Changes):**
+
 ```bash
 # Start shadow test
 curl -X POST .../shadow/start -d '{"shadowVariant": "new_variant", "targetSamples": 100}'
@@ -745,6 +784,7 @@ curl -X POST .../shadow/promote    # or rollback
 ```
 
 **Incident Response (API Outage):**
+
 1. Check health endpoint: `curl .../reliability/health`
 2. Verify circuit breaker state: `curl .../reliability/metrics | jq '.circuitBreaker'`
 3. If OPEN, wait for auto-recovery (60s)
@@ -758,12 +798,14 @@ curl -X POST .../shadow/promote    # or rollback
 ### 9.1 Planned Features
 
 **Q1 2026:**
+
 - [ ] Semantic embeddings for better cache matching (OpenAI embeddings)
 - [ ] Adaptive cache TTL based on query patterns
 - [ ] Multi-region failover for Groq API
 - [ ] Automatic cache warming from analytics
 
 **Q2 2026:**
+
 - [ ] Predictive cache pre-loading (ML-based)
 - [ ] Dynamic circuit breaker thresholds
 - [ ] Auto-scaling shadow traffic based on confidence
@@ -782,22 +824,22 @@ curl -X POST .../shadow/promote    # or rollback
 
 ### Reliability Endpoints
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/reliability/health` | GET | System health check |
-| `/api/reliability/metrics` | GET | Comprehensive metrics |
-| `/api/reliability/cache/stats` | GET | Cache statistics |
-| `/api/reliability/cache/clear` | POST | Clear cache |
-| `/api/reliability/cache/clear-expired` | POST | Clear expired entries |
-| `/api/reliability/shadow/status` | GET | Shadow deployment status |
-| `/api/reliability/shadow/start` | POST | Start shadow deployment |
-| `/api/reliability/shadow/stop` | POST | Stop shadow deployment |
-| `/api/reliability/shadow/analysis` | GET | Analyze shadow results |
-| `/api/reliability/shadow/promotion-check` | GET | Check promotion criteria |
-| `/api/reliability/shadow/promote` | POST | Promote shadow to primary |
-| `/api/reliability/shadow/rollback` | POST | Rollback shadow |
-| `/api/reliability/shadow/history` | GET | Deployment history |
-| `/api/reliability/safety` | GET | Safety metrics |
+| Endpoint                                  | Method | Description               |
+| ----------------------------------------- | ------ | ------------------------- |
+| `/api/reliability/health`                 | GET    | System health check       |
+| `/api/reliability/metrics`                | GET    | Comprehensive metrics     |
+| `/api/reliability/cache/stats`            | GET    | Cache statistics          |
+| `/api/reliability/cache/clear`            | POST   | Clear cache               |
+| `/api/reliability/cache/clear-expired`    | POST   | Clear expired entries     |
+| `/api/reliability/shadow/status`          | GET    | Shadow deployment status  |
+| `/api/reliability/shadow/start`           | POST   | Start shadow deployment   |
+| `/api/reliability/shadow/stop`            | POST   | Stop shadow deployment    |
+| `/api/reliability/shadow/analysis`        | GET    | Analyze shadow results    |
+| `/api/reliability/shadow/promotion-check` | GET    | Check promotion criteria  |
+| `/api/reliability/shadow/promote`         | POST   | Promote shadow to primary |
+| `/api/reliability/shadow/rollback`        | POST   | Rollback shadow           |
+| `/api/reliability/shadow/history`         | GET    | Deployment history        |
+| `/api/reliability/safety`                 | GET    | Safety metrics            |
 
 ---
 

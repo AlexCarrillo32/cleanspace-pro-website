@@ -9,7 +9,6 @@
  */
 
 import { getDatabase } from "../database/init.js";
-import { SchedulingAgent } from "./SchedulingAgent.js";
 
 export class ModelVersionManager {
   constructor() {
@@ -219,8 +218,6 @@ export class ModelVersionManager {
    * Compare two versions
    */
   async compareVersions(variantName, version1, version2) {
-    const db = getDatabase();
-
     // Get performance metrics for version 1
     const v1Metrics = await this.getVersionMetrics(variantName, version1);
 

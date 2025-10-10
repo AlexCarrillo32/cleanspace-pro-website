@@ -118,8 +118,7 @@ export class CostPerformanceOptimizer {
    * Update metrics after request completion
    */
   updateMetrics(requestMetrics) {
-    const { cost, latency, tokens, bookingCompleted, modelUsed } =
-      requestMetrics;
+    const { cost, latency, tokens, bookingCompleted } = requestMetrics;
 
     // Update costs
     this.metrics.totalCost += cost;
@@ -205,7 +204,20 @@ export class CostPerformanceOptimizer {
    * Get optimization report
    */
   getOptimizationReport() {
-    const routingStats = intelligentRouter.getStatistics();
+    // Safely get routing stats
+    let routingStats = {};
+    try {
+      if (
+        intelligentRouter &&
+        intelligentRouter.instance &&
+        typeof intelligentRouter.instance.getStatistics === "function"
+      ) {
+        routingStats = intelligentRouter.instance.getStatistics();
+      }
+    } catch (error) {
+      console.warn("Could not get routing stats:", error.message);
+    }
+
     const batchingStats = requestBatcher.getMetrics();
     const budgetStats = promptBudgetManager.getMetrics();
 
@@ -268,7 +280,19 @@ export class CostPerformanceOptimizer {
     const recommendations = [];
 
     // Routing recommendations
-    recommendations.push(...intelligentRouter.getRecommendations());
+    try {
+      if (
+        intelligentRouter &&
+        intelligentRouter.instance &&
+        typeof intelligentRouter.instance.getRecommendations === "function"
+      ) {
+        recommendations.push(
+          ...intelligentRouter.instance.getRecommendations(),
+        );
+      }
+    } catch (error) {
+      console.warn("Could not get routing recommendations:", error.message);
+    }
 
     // Performance recommendations
     if (this.metrics.avgCostPerBooking > this.config.targetCostPerBooking) {

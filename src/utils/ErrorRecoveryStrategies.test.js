@@ -198,7 +198,7 @@ describe("ErrorRecoveryStrategies", () => {
 
     it("retries on retryable errors", async () => {
       let attempts = 0;
-      const operation = (async () => {
+      const operation = async () => {
         attempts++;
         if (attempts < 3) {
           const error = new Error("Timeout");
@@ -206,7 +206,7 @@ describe("ErrorRecoveryStrategies", () => {
           throw error;
         }
         return { data: "success-after-retries" };
-      });
+      };
 
       const result = await recovery.executeWithRetryAndFallback(operation, {
         maxAttempts: 3,

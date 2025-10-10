@@ -22,7 +22,7 @@ router.get("/health", async (req, res) => {
 
     // Check database connectivity
     const dbHealth = await new Promise((resolve) => {
-      db.get("SELECT 1 as health", (err, row) => {
+      db.get("SELECT 1 as health", (err, _row) => {
         resolve({
           status: err ? "unhealthy" : "healthy",
           error: err?.message,

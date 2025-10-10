@@ -19,7 +19,7 @@ async function main() {
         console.log("\n✅ Test cases seeded successfully!");
         break;
 
-      case "eval":
+      case "eval": {
         const variant = args[0] || "baseline";
         const experimentName = args[1] || `offline_eval_${Date.now()}`;
         console.log(
@@ -32,8 +32,9 @@ async function main() {
         console.log("\n📊 Evaluation Report:\n");
         console.log(JSON.stringify(result, null, 2));
         break;
+      }
 
-      case "ab-test":
+      case "ab-test": {
         const variantA = args[0] || "baseline";
         const variantB = args[1] || "professional";
         const abTestName = args[2] || `ab_test_${Date.now()}`;
@@ -45,6 +46,7 @@ async function main() {
         console.log("\n📊 A/B Test Complete!\n");
         console.log(JSON.stringify(abResult, null, 2));
         break;
+      }
 
       case "help":
       default:

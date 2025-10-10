@@ -381,7 +381,8 @@ export class ReliabilityMetricsCollector {
         category: "Circuit Breaker",
         message:
           "Circuit breaker is open - service is degraded. Check error logs and upstream services.",
-        action: "Investigate recent errors and ensure upstream services are healthy",
+        action:
+          "Investigate recent errors and ensure upstream services are healthy",
       });
     }
 
@@ -408,8 +409,7 @@ export class ReliabilityMetricsCollector {
         priority: "MEDIUM",
         category: "Recovery",
         message: `Recovery success rate is ${metrics.recovery.recoverySuccessRate.toFixed(1)}% (threshold: ${this.thresholds.recoveryRate}%)`,
-        action:
-          "Improve fallback strategies or add more recovery mechanisms",
+        action: "Improve fallback strategies or add more recovery mechanisms",
       });
     }
 
@@ -427,10 +427,7 @@ export class ReliabilityMetricsCollector {
     }
 
     // Critical errors recommendations
-    if (
-      metrics.errors?.byPriority &&
-      metrics.errors.byPriority.CRITICAL > 0
-    ) {
+    if (metrics.errors?.byPriority && metrics.errors.byPriority.CRITICAL > 0) {
       recommendations.push({
         priority: "HIGH",
         category: "Critical Errors",
@@ -473,11 +470,11 @@ export class ReliabilityMetricsCollector {
 
   /**
    * Get time series data for graphing
-   * @param {string} metric - Metric name
-   * @param {string} window - Time window (realtime, short, medium)
+   * @param {string} _metric - Metric name
+   * @param {string} _window - Time window (realtime, short, medium)
    * @returns {Array} Time series data
    */
-  getTimeSeries(metric, window = "short") {
+  getTimeSeries(_metric, _window = "short") {
     // TODO: Implement time series storage and retrieval
     // For now, return empty array
     return [];

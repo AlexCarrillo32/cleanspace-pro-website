@@ -5,6 +5,7 @@
 This document outlines the comprehensive cost optimization infrastructure for the CleanSpace Pro AI scheduling agent, achieving **50-70% cost reduction** through intelligent routing, request batching, and prompt budgets.
 
 **Key Results:**
+
 - **50-70% cost savings** through intelligent model routing
 - **10-20% additional savings** from request batching
 - **Zero runaway costs** with strict budget enforcement
@@ -28,10 +29,10 @@ User Query → Complexity Analysis → Model Selection → Execution
 
 ### Model Configurations
 
-| Model | Cost/Token (Input) | Cost/Token (Output) | Avg Latency | Best For |
-|-------|-------------------|---------------------|-------------|----------|
-| **llama-3.1-8b-instant** | $0.00000005 | $0.00000008 | 600ms | Simple queries, basic booking |
-| **llama-3.1-70b-versatile** | $0.00000059 | $0.00000079 | 1800ms | Complex queries, edge cases |
+| Model                       | Cost/Token (Input) | Cost/Token (Output) | Avg Latency | Best For                      |
+| --------------------------- | ------------------ | ------------------- | ----------- | ----------------------------- |
+| **llama-3.1-8b-instant**    | $0.00000005        | $0.00000008         | 600ms       | Simple queries, basic booking |
+| **llama-3.1-70b-versatile** | $0.00000059        | $0.00000079         | 1800ms      | Complex queries, edge cases   |
 
 **Cost Difference:** 70B model is **11.8x more expensive** than 8B model
 
@@ -59,6 +60,7 @@ User Query → Complexity Analysis → Model Selection → Execution
 **Goal:** Minimize costs while maintaining quality
 
 **Rules:**
+
 - Simple queries → Always use 8B (fast)
 - Medium queries → Use 8B if success rate ≥ 90%
 - Complex queries → Always use 70B (balanced)
@@ -70,6 +72,7 @@ User Query → Complexity Analysis → Model Selection → Execution
 **Goal:** Maximize booking rate and quality
 
 **Rules:**
+
 - Simple queries → Use 8B (fast)
 - Medium queries → Use 70B (balanced)
 - Complex queries → Use 70B (balanced)
@@ -81,6 +84,7 @@ User Query → Complexity Analysis → Model Selection → Execution
 **Goal:** Balance cost and performance
 
 **Rules:**
+
 - Simple queries → Use 8B (fast)
 - Medium queries → Use 70B if latency allows
 - Complex queries → Use 70B (balanced)
@@ -90,11 +94,13 @@ User Query → Complexity Analysis → Model Selection → Execution
 ### API Usage
 
 **Get Routing Statistics:**
+
 ```bash
 curl "http://localhost:3001/api/optimization/routing/stats"
 ```
 
 Response:
+
 ```json
 {
   "totalRequests": 1000,
@@ -127,11 +133,13 @@ Response:
 ```
 
 **Get Recommendations:**
+
 ```bash
 curl "http://localhost:3001/api/optimization/routing/recommendations"
 ```
 
 Response:
+
 ```json
 {
   "recommendations": [
@@ -146,6 +154,7 @@ Response:
 ```
 
 **Change Strategy:**
+
 ```bash
 curl -X POST http://localhost:3001/api/optimization/strategy \
   -H "Content-Type: application/json" \
@@ -157,12 +166,14 @@ curl -X POST http://localhost:3001/api/optimization/strategy \
 **Scenario:** 1,000 bookings/month, 6 messages/booking
 
 **Without Optimization (all 70B):**
+
 - Input tokens: 200/msg × 6 msg = 1,200 tokens
 - Output tokens: 150/msg × 6 msg = 900 tokens
 - Cost: (1,200 × $0.00000059) + (900 × $0.00000079) = $0.001419/booking
 - **Total: $1,419/month**
 
 **With Optimization (75% 8B, 25% 70B):**
+
 - 8B requests: 750 × $0.000195 = $0.146
 - 70B requests: 250 × $0.001419 = $0.355
 - **Total: $501/month**
@@ -206,10 +217,12 @@ Return results
 #### 2.3 Cost Savings
 
 **Without Batching:**
+
 - Each request includes full system prompt (200 tokens)
 - 5 requests = 5 × 200 = 1,000 system prompt tokens
 
 **With Batching:**
+
 - System prompt shared across batch
 - 5 requests = 1 × 200 = 200 system prompt tokens
 - **Savings: 800 tokens (80%)**
@@ -219,11 +232,13 @@ Return results
 ### API Usage
 
 **Get Batching Stats:**
+
 ```bash
 curl "http://localhost:3001/api/optimization/batching/stats"
 ```
 
 Response:
+
 ```json
 {
   "totalRequests": 1000,
@@ -237,6 +252,7 @@ Response:
 ```
 
 **Flush Pending Batch:**
+
 ```bash
 curl -X POST http://localhost:3001/api/optimization/batching/flush
 ```
@@ -277,11 +293,13 @@ Enforces strict token and cost budgets to prevent runaway costs.
 **Scenario:** Request exceeds 2,000 input tokens
 
 **Without Auto-Trim:**
+
 ```
 ❌ Request blocked: input_tokens
 ```
 
 **With Auto-Trim:**
+
 ```
 ✂️ Trimmed messages: 12 → 8
 ✅ Request proceeds with trimmed context
@@ -292,6 +310,7 @@ Enforces strict token and cost budgets to prevent runaway costs.
 **Scenario:** Daily budget 90% used
 
 **Alert:**
+
 ```
 ⚠️ Daily budget 90.0% used ($9.00/$10.00)
 ```
@@ -299,6 +318,7 @@ Enforces strict token and cost budgets to prevent runaway costs.
 **Scenario:** Daily budget exceeded
 
 **Block:**
+
 ```
 🚫 Request blocked: daily_cost
 Remaining: $0.50
@@ -307,11 +327,13 @@ Remaining: $0.50
 ### Context Trimming
 
 **Strategy:**
+
 1. Always keep system prompt (first message)
 2. Keep most recent messages working backwards
 3. Ensure minimum conversation history (2 messages)
 
 **Example:**
+
 ```
 Before: [system, user1, assistant1, user2, assistant2, user3, assistant3, user4]
 After:  [system, user2, assistant2, user3, assistant3, user4]
@@ -320,11 +342,13 @@ After:  [system, user2, assistant2, user3, assistant3, user4]
 ### API Usage
 
 **Get Budget Status:**
+
 ```bash
 curl "http://localhost:3001/api/optimization/budgets/status"
 ```
 
 Response:
+
 ```json
 {
   "daily": {
@@ -353,11 +377,13 @@ Response:
 ```
 
 **Get Budget Metrics:**
+
 ```bash
 curl "http://localhost:3001/api/optimization/budgets/metrics"
 ```
 
 Response:
+
 ```json
 {
   "totalRequests": 1000,
@@ -384,6 +410,7 @@ Response:
 ```
 
 **Update Budget Config:**
+
 ```bash
 curl -X POST http://localhost:3001/api/optimization/budgets/config \
   -H "Content-Type: application/json" \
@@ -423,11 +450,13 @@ Request → Budget Check → Routing → Batching → Execution
 ### API Usage
 
 **Get Optimization Report:**
+
 ```bash
 curl "http://localhost:3001/api/optimization/report"
 ```
 
 Response:
+
 ```json
 {
   "summary": {
@@ -470,11 +499,13 @@ Response:
 ```
 
 **Get Cost Savings:**
+
 ```bash
 curl "http://localhost:3001/api/optimization/savings"
 ```
 
 Response:
+
 ```json
 {
   "totalSavings": "$0.9765",
@@ -498,11 +529,13 @@ Response:
 ```
 
 **Get Recommendations:**
+
 ```bash
 curl "http://localhost:3001/api/optimization/recommendations"
 ```
 
 Response:
+
 ```json
 {
   "recommendations": [
@@ -543,6 +576,7 @@ curl "http://localhost:3001/api/optimization/recommendations"
 ```
 
 **Action Items:**
+
 - If daily usage > 80% → Investigate high-cost queries
 - If booking rate < 70% → Switch to performance_optimized strategy
 - If avg cost per booking > $0.005 → Enable more aggressive routing
@@ -606,28 +640,28 @@ curl -X POST http://localhost:3001/api/optimization/budgets/config \
 
 ### Cost Comparison (1,000 bookings/month)
 
-| Configuration | Cost/Month | Savings | Booking Rate |
-|---------------|------------|---------|--------------|
-| **No Optimization (all 70B)** | $1,419 | - | 75% |
-| **Cost-Optimized** | $501 | 64.7% | 73% |
-| **Balanced** | $710 | 50.0% | 74% |
-| **Performance-Optimized** | $995 | 29.9% | 77% |
+| Configuration                 | Cost/Month | Savings | Booking Rate |
+| ----------------------------- | ---------- | ------- | ------------ |
+| **No Optimization (all 70B)** | $1,419     | -       | 75%          |
+| **Cost-Optimized**            | $501       | 64.7%   | 73%          |
+| **Balanced**                  | $710       | 50.0%   | 74%          |
+| **Performance-Optimized**     | $995       | 29.9%   | 77%          |
 
 ### Latency Comparison
 
-| Model | P50 | P95 | P99 |
-|-------|-----|-----|-----|
-| **8B (fast)** | 500ms | 800ms | 1200ms |
-| **70B (balanced)** | 1500ms | 2200ms | 3000ms |
-| **Mixed (cost-optimized)** | 700ms | 1500ms | 2500ms |
+| Model                      | P50    | P95    | P99    |
+| -------------------------- | ------ | ------ | ------ |
+| **8B (fast)**              | 500ms  | 800ms  | 1200ms |
+| **70B (balanced)**         | 1500ms | 2200ms | 3000ms |
+| **Mixed (cost-optimized)** | 700ms  | 1500ms | 2500ms |
 
 ### Quality Comparison
 
-| Metric | No Optimization | Cost-Optimized | Δ |
-|--------|----------------|----------------|---|
-| **Booking Rate** | 75% | 73% | -2% |
-| **Escalation Rate** | 5% | 6% | +1% |
-| **Customer Satisfaction** | 4.5/5 | 4.4/5 | -0.1 |
+| Metric                    | No Optimization | Cost-Optimized | Δ    |
+| ------------------------- | --------------- | -------------- | ---- |
+| **Booking Rate**          | 75%             | 73%            | -2%  |
+| **Escalation Rate**       | 5%              | 6%             | +1%  |
+| **Customer Satisfaction** | 4.5/5           | 4.4/5          | -0.1 |
 
 **Conclusion:** 2% quality tradeoff for 65% cost savings
 
@@ -637,18 +671,19 @@ curl -X POST http://localhost:3001/api/optimization/budgets/config \
 
 ### Key Metrics
 
-| Metric | Target | Alert Threshold |
-|--------|--------|-----------------|
-| Daily cost | < $10 | > $8 (80%) |
-| Monthly cost | < $300 | > $240 (80%) |
-| Cost per booking | < $0.005 | > $0.007 |
-| Booking rate | > 75% | < 70% |
-| Fast model usage | > 60% | < 50% |
-| Blocked requests | < 1% | > 2% |
+| Metric           | Target   | Alert Threshold |
+| ---------------- | -------- | --------------- |
+| Daily cost       | < $10    | > $8 (80%)      |
+| Monthly cost     | < $300   | > $240 (80%)    |
+| Cost per booking | < $0.005 | > $0.007        |
+| Booking rate     | > 75%    | < 70%           |
+| Fast model usage | > 60%    | < 50%           |
+| Blocked requests | < 1%     | > 2%            |
 
 ### Alert Actions
 
 **Daily Budget 80% Used:**
+
 ```
 1. Review routing stats
 2. Check for expensive queries
@@ -657,6 +692,7 @@ curl -X POST http://localhost:3001/api/optimization/budgets/config \
 ```
 
 **Booking Rate < 70%:**
+
 ```
 1. Switch to balanced or performance strategy
 2. Check fast model success rate
@@ -665,6 +701,7 @@ curl -X POST http://localhost:3001/api/optimization/budgets/config \
 ```
 
 **Cost Per Booking > $0.007:**
+
 ```
 1. Increase fast model usage
 2. Reduce max input tokens
@@ -679,16 +716,19 @@ curl -X POST http://localhost:3001/api/optimization/budgets/config \
 ### 8.1 Strategy Selection
 
 **Use Cost-Optimized When:**
+
 - Budget is tight ($5-$10/day)
 - Booking rate > 70%
 - Quality acceptable (4.3+ satisfaction)
 
 **Use Balanced When:**
+
 - Moderate budget ($10-$15/day)
 - Booking rate 70-75%
 - Need balance of cost and quality
 
 **Use Performance-Optimized When:**
+
 - Budget is flexible ($15+/day)
 - Booking rate < 70%
 - Quality is critical (4.5+ satisfaction required)
@@ -696,6 +736,7 @@ curl -X POST http://localhost:3001/api/optimization/budgets/config \
 ### 8.2 Budget Configuration
 
 **Conservative:**
+
 ```javascript
 {
   maxDailyCost: 5.0,
@@ -706,6 +747,7 @@ curl -X POST http://localhost:3001/api/optimization/budgets/config \
 ```
 
 **Moderate:**
+
 ```javascript
 {
   maxDailyCost: 10.0,
@@ -716,6 +758,7 @@ curl -X POST http://localhost:3001/api/optimization/budgets/config \
 ```
 
 **Flexible:**
+
 ```javascript
 {
   maxDailyCost: 20.0,
@@ -728,11 +771,13 @@ curl -X POST http://localhost:3001/api/optimization/budgets/config \
 ### 8.3 Batching
 
 **Enable When:**
+
 - High request volume (100+ requests/hour)
 - Acceptable latency (+100ms)
 - Requests are similar in nature
 
 **Disable When:**
+
 - Low request volume (< 20 requests/hour)
 - Strict latency requirements
 - Requests vary significantly
@@ -743,37 +788,37 @@ curl -X POST http://localhost:3001/api/optimization/budgets/config \
 
 ### Optimization
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/optimization/report` | GET | Get optimization report |
-| `/api/optimization/metrics` | GET | Get metrics |
-| `/api/optimization/savings` | GET | Get cost savings |
-| `/api/optimization/recommendations` | GET | Get recommendations |
-| `/api/optimization/strategy` | POST | Update strategy |
-| `/api/optimization/reset` | POST | Reset metrics |
-| `/api/optimization/health` | GET | Health check |
+| Endpoint                            | Method | Description             |
+| ----------------------------------- | ------ | ----------------------- |
+| `/api/optimization/report`          | GET    | Get optimization report |
+| `/api/optimization/metrics`         | GET    | Get metrics             |
+| `/api/optimization/savings`         | GET    | Get cost savings        |
+| `/api/optimization/recommendations` | GET    | Get recommendations     |
+| `/api/optimization/strategy`        | POST   | Update strategy         |
+| `/api/optimization/reset`           | POST   | Reset metrics           |
+| `/api/optimization/health`          | GET    | Health check            |
 
 ### Routing
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/optimization/routing/stats` | GET | Get routing statistics |
-| `/api/optimization/routing/recommendations` | GET | Get routing recommendations |
+| Endpoint                                    | Method | Description                 |
+| ------------------------------------------- | ------ | --------------------------- |
+| `/api/optimization/routing/stats`           | GET    | Get routing statistics      |
+| `/api/optimization/routing/recommendations` | GET    | Get routing recommendations |
 
 ### Batching
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/optimization/batching/stats` | GET | Get batching statistics |
-| `/api/optimization/batching/flush` | POST | Flush pending batch |
+| Endpoint                           | Method | Description             |
+| ---------------------------------- | ------ | ----------------------- |
+| `/api/optimization/batching/stats` | GET    | Get batching statistics |
+| `/api/optimization/batching/flush` | POST   | Flush pending batch     |
 
 ### Budgets
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/optimization/budgets/status` | GET | Get budget status |
-| `/api/optimization/budgets/metrics` | GET | Get budget metrics |
-| `/api/optimization/budgets/config` | POST | Update budget config |
+| Endpoint                            | Method | Description          |
+| ----------------------------------- | ------ | -------------------- |
+| `/api/optimization/budgets/status`  | GET    | Get budget status    |
+| `/api/optimization/budgets/metrics` | GET    | Get budget metrics   |
+| `/api/optimization/budgets/config`  | POST   | Update budget config |
 
 ---
 

@@ -306,7 +306,7 @@ export class DriftDetector {
   /**
    * Detect response time drift
    */
-  detectResponseTimeDrift(baseline, recent) {
+  detectResponseTimeDrift(_baseline, _recent) {
     // This would require adding response_time tracking to conversations table
     // For now, return no drift
     return {

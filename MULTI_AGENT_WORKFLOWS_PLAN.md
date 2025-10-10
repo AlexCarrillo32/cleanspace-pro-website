@@ -5,6 +5,7 @@
 This document outlines the multi-agent workflow system for CleanSpace Pro, enabling complex multi-step business processes through orchestrated AI agents.
 
 **Key Capabilities:**
+
 - **Multi-step workflows** with conditional branching
 - **Agent orchestration** with specialized agents per task
 - **State management** for long-running processes
@@ -125,16 +126,19 @@ Task Queue → State Manager → Result Aggregator
 **Purpose:** Qualify leads and determine service needs
 
 **Input:**
+
 - Customer message
 - Conversation history
 
 **Output:**
+
 - is_qualified (boolean)
 - lead_score (0-100)
 - service_type (string)
 - urgency_level (low/medium/high)
 
 **Example:**
+
 ```javascript
 {
   "is_qualified": true,
@@ -150,17 +154,20 @@ Task Queue → State Manager → Result Aggregator
 **Purpose:** Find optimal appointment slots
 
 **Input:**
+
 - service_type
 - customer_availability
 - preferred_date_range
 
 **Output:**
+
 - appointment_date
 - appointment_time
 - duration_minutes
 - available_alternatives
 
 **Example:**
+
 ```javascript
 {
   "appointment_date": "2025-10-15",
@@ -178,16 +185,19 @@ Task Queue → State Manager → Result Aggregator
 **Purpose:** Calculate quotes and estimates
 
 **Input:**
+
 - service_type
 - property_size
 - special_requirements
 
 **Output:**
+
 - estimated_cost
 - cost_breakdown
 - discount_eligible
 
 **Example:**
+
 ```javascript
 {
   "estimated_cost": 250.00,
@@ -207,16 +217,19 @@ Task Queue → State Manager → Result Aggregator
 **Purpose:** Send confirmations and follow-ups
 
 **Input:**
+
 - appointment_details
 - customer_email
 - customer_phone
 
 **Output:**
+
 - confirmation_sent
 - confirmation_id
 - followup_scheduled
 
 **Example:**
+
 ```javascript
 {
   "confirmation_sent": true,
@@ -238,6 +251,7 @@ Customer Inquiry → Collect Info → Book → Confirm
 ```
 
 **Steps:**
+
 1. Greet and understand needs
 2. Collect required information
 3. Book appointment
@@ -254,6 +268,7 @@ Inquiry → Qualify → Pricing → Negotiate → Schedule → Contract → Conf
 ```
 
 **Steps:**
+
 1. Initial inquiry and qualification
 2. Lead scoring and prioritization
 3. Custom pricing calculation
@@ -273,6 +288,7 @@ Emergency Request → Triage → Priority Scheduling → Immediate Confirmation
 ```
 
 **Steps:**
+
 1. Identify emergency (water damage, etc.)
 2. Triage urgency level
 3. Find next available slot (priority)
@@ -289,6 +305,7 @@ Initial Booking → Contract Setup → Recurring Schedule → Auto-Renewal
 ```
 
 **Steps:**
+
 1. Initial booking and service
 2. Contract setup (weekly/monthly)
 3. Create recurring schedule
@@ -352,6 +369,7 @@ PENDING → IN_PROGRESS → COMPLETED
 ### State Persistence
 
 **Database Schema:**
+
 ```sql
 CREATE TABLE workflow_executions (
   id TEXT PRIMARY KEY,
@@ -407,11 +425,13 @@ CREATE TABLE workflow_executions (
 ### Execution Strategy
 
 **Sequential Steps:**
+
 ```
 Step 1 completes → Step 2 starts → Step 3 starts
 ```
 
 **Parallel Steps:**
+
 ```
 Step 1 completes → [Step 2A, Step 2B, Step 2C] all start simultaneously
                  → Wait for all to complete
@@ -425,6 +445,7 @@ Step 1 completes → [Step 2A, Step 2B, Step 2C] all start simultaneously
 ### Retry Strategies
 
 **Exponential Backoff:**
+
 ```
 Retry 1: Wait 1s
 Retry 2: Wait 2s
@@ -432,6 +453,7 @@ Retry 3: Wait 4s
 ```
 
 **Fixed Delay:**
+
 ```
 Retry 1: Wait 5s
 Retry 2: Wait 5s
@@ -441,6 +463,7 @@ Retry 3: Wait 5s
 ### Fallback Workflows
 
 **Primary workflow fails:**
+
 ```
 Complex Sales Flow (failed at pricing step)
   ↓
@@ -450,12 +473,14 @@ Fallback: Simple Booking Flow (skip pricing, use standard rate)
 ### Human-in-the-Loop
 
 **When to escalate:**
+
 - All retries exhausted
 - Critical step fails (e.g., payment processing)
 - Customer explicitly requests human
 - Workflow timeout exceeded
 
 **Escalation process:**
+
 ```
 1. Mark workflow as "needs_human"
 2. Notify human agent
@@ -534,23 +559,25 @@ Fallback: Simple Booking Flow (skip pricing, use standard rate)
 
 ### Key Metrics
 
-| Metric | Description | Target |
-|--------|-------------|--------|
-| **Workflow Success Rate** | % completed without errors | > 95% |
-| **Avg Workflow Duration** | Time from start to completion | < 10 min |
-| **Step Failure Rate** | % of steps that fail | < 3% |
-| **Escalation Rate** | % requiring human intervention | < 10% |
-| **Retry Success Rate** | % of retries that succeed | > 80% |
+| Metric                    | Description                    | Target   |
+| ------------------------- | ------------------------------ | -------- |
+| **Workflow Success Rate** | % completed without errors     | > 95%    |
+| **Avg Workflow Duration** | Time from start to completion  | < 10 min |
+| **Step Failure Rate**     | % of steps that fail           | < 3%     |
+| **Escalation Rate**       | % requiring human intervention | < 10%    |
+| **Retry Success Rate**    | % of retries that succeed      | > 80%    |
 
 ### Monitoring Dashboard
 
 **Real-time Metrics:**
+
 - Active workflows (in_progress)
 - Workflows completed (last hour)
 - Failed workflows (needs attention)
 - Avg duration by workflow type
 
 **Historical Metrics:**
+
 - Success rate trend (7 days)
 - Most common failure points
 - Escalation reasons
@@ -563,6 +590,7 @@ Fallback: Simple Booking Flow (skip pricing, use standard rate)
 ### Workflow Execution
 
 **Start Workflow:**
+
 ```bash
 POST /api/workflows/execute
 {
@@ -576,11 +604,13 @@ POST /api/workflows/execute
 ```
 
 **Get Workflow Status:**
+
 ```bash
 GET /api/workflows/executions/{executionId}
 ```
 
 **Resume Workflow:**
+
 ```bash
 POST /api/workflows/executions/{executionId}/resume
 {
@@ -590,6 +620,7 @@ POST /api/workflows/executions/{executionId}/resume
 ```
 
 **Cancel Workflow:**
+
 ```bash
 POST /api/workflows/executions/{executionId}/cancel
 ```
@@ -597,16 +628,19 @@ POST /api/workflows/executions/{executionId}/cancel
 ### Workflow Management
 
 **List Workflows:**
+
 ```bash
 GET /api/workflows
 ```
 
 **Get Workflow Definition:**
+
 ```bash
 GET /api/workflows/{workflowId}
 ```
 
 **Create Workflow:**
+
 ```bash
 POST /api/workflows
 {
@@ -662,16 +696,19 @@ POST /api/workflows
 ### Workflow Design
 
 **Keep workflows focused:**
+
 - Each workflow has a single business goal
 - Break complex processes into sub-workflows
 - Limit to 5-7 steps per workflow
 
 **Design for failure:**
+
 - Add retries for network-dependent steps
 - Define fallback workflows
 - Set appropriate timeouts
 
 **Optimize for cost:**
+
 - Use caching for repeated calls
 - Batch similar steps
 - Choose appropriate agents (simple vs complex)
@@ -679,15 +716,18 @@ POST /api/workflows
 ### Agent Design
 
 **Single responsibility:**
+
 - Each agent does one thing well
 - Clear input/output contracts
 - Stateless execution
 
 **Idempotent operations:**
+
 - Safe to retry without side effects
 - Check if already completed before executing
 
 **Error reporting:**
+
 - Return structured errors
 - Include context for debugging
 - Suggest remediation steps

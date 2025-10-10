@@ -344,7 +344,7 @@ export class RetrainingOrchestrator {
   /**
    * Generate improved prompt based on failure analysis
    */
-  async generateImprovedPrompt(variant, failureAnalysis, trainingData) {
+  async generateImprovedPrompt(variant, failureAnalysis, _trainingData) {
     // This is a placeholder - in production, you would:
     // 1. Use GPT-4 to analyze failures and suggest prompt improvements
     // 2. Or use few-shot learning with successful examples

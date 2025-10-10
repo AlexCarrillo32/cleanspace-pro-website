@@ -9,6 +9,7 @@ A complete AI scheduling agent system with **full instrumentation, offline evalu
 ## 🎯 Core Features
 
 ### 1. AI Scheduling Agent
+
 - **Free Groq API** with ultra-fast inference (LLaMA 3.1)
 - Natural conversation for scheduling appointments & estimates
 - 3 variants for A/B testing (baseline, professional, casual)
@@ -18,6 +19,7 @@ A complete AI scheduling agent system with **full instrumentation, offline evalu
 - Appointment booking
 
 ### 2. Full Logging & Instrumentation
+
 ✅ **Every prompt logged** to database
 ✅ **Every response logged** with metadata
 ✅ **Token usage tracked** per message
@@ -26,31 +28,37 @@ A complete AI scheduling agent system with **full instrumentation, offline evalu
 ✅ **Conversation outcomes** tracked (booking success, satisfaction)
 
 ### 3. Offline Evaluation
+
 ✅ **10 test cases** covering:
-  - Happy path (valid requests)
-  - Edge cases (same-day, out of hours)
-  - Conflicts (double booking)
-  - Clarifications (incomplete info)
-  - Complex scenarios (multiple services, commercial)
+
+- Happy path (valid requests)
+- Edge cases (same-day, out of hours)
+- Conflicts (double booking)
+- Clarifications (incomplete info)
+- Complex scenarios (multiple services, commercial)
 
 ✅ **Automated scoring** (0.0 - 1.0) based on:
-  - Booking success
-  - Data extraction accuracy
-  - Appropriate responses
-  - Professional tone
+
+- Booking success
+- Data extraction accuracy
+- Appropriate responses
+- Professional tone
 
 ### 4. A/B Testing Framework
+
 ✅ **Compare variants** (baseline vs professional vs casual)
 ✅ **Track metrics** per variant:
-  - Booking rate %
-  - Average cost per booking
-  - Customer satisfaction
-  - Response time
-  - Escalation rate
+
+- Booking rate %
+- Average cost per booking
+- Customer satisfaction
+- Response time
+- Escalation rate
 
 ✅ **Statistical comparison** with winner identification
 
 ### 5. Cost Tracking
+
 ✅ **Real-time cost calculation** using Groq pricing
 ✅ **Per-conversation cost** tracking
 ✅ **Per-booking cost** calculation
@@ -58,6 +66,7 @@ A complete AI scheduling agent system with **full instrumentation, offline evalu
 ✅ **Cost by variant** comparison
 
 ### 6. Analytics Dashboard API
+
 ✅ `/api/analytics/metrics` - Overall performance
 ✅ `/api/analytics/metrics/by-variant` - A/B test results
 ✅ `/api/analytics/experiments/:name` - Offline eval results
@@ -82,20 +91,25 @@ A complete AI scheduling agent system with **full instrumentation, offline evalu
 ## 🔧 Files Created
 
 ### Core Services
+
 - `src/services/SchedulingAgent.js` - AI agent with 3 variants
 - `src/services/EvaluationService.js` - Offline eval & A/B testing
 
 ### API Routes
+
 - `src/routes/chat.js` - Chat interface (start, message, book, end)
 - `src/routes/analytics.js` - Metrics & analytics endpoints
 
 ### Database
+
 - `src/database/appointments.js` - Schema for all new tables
 
 ### Scripts
+
 - `scripts/evaluate.js` - CLI tool for running evaluations
 
 ### Documentation
+
 - `AI_AGENT_DOCUMENTATION.md` - Complete technical docs
 - `AI_AGENT_SUMMARY.md` - This file
 
@@ -104,10 +118,12 @@ A complete AI scheduling agent system with **full instrumentation, offline evalu
 ## 💰 Cost Analysis
 
 **Groq Pricing (Free Tier):**
+
 - LLaMA 3.1 8B: $0.05 / 1M input tokens, $0.08 / 1M output tokens
 - LLaMA 3.1 70B: $0.59 / 1M input tokens, $0.79 / 1M output tokens
 
 **Real Cost Examples:**
+
 - Average conversation: ~500 tokens
 - **Baseline variant:** $0.000025 per conversation (~$0.03 for 1,000 bookings!)
 - **Professional variant:** $0.00035 per conversation (~$0.39 for 1,000 bookings)
@@ -204,24 +220,24 @@ Variant B (professional):
 
 ```javascript
 // Start conversation
-const session = await fetch('http://localhost:3001/api/chat/start', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ variant: 'baseline' })
+const session = await fetch("http://localhost:3001/api/chat/start", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ variant: "baseline" }),
 });
 
 // Send message
-const response = await fetch('http://localhost:3001/api/chat/message', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+const response = await fetch("http://localhost:3001/api/chat/message", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
     sessionId: session.sessionId,
-    message: 'I need a cleaning service'
-  })
+    message: "I need a cleaning service",
+  }),
 });
 
 // Get metrics
-const metrics = await fetch('http://localhost:3001/api/analytics/metrics');
+const metrics = await fetch("http://localhost:3001/api/analytics/metrics");
 ```
 
 ---
@@ -242,6 +258,7 @@ const metrics = await fetch('http://localhost:3001/api/analytics/metrics');
 ## 📝 Summary
 
 CleanSpace Pro now has a **production-ready AI scheduling agent** with:
+
 - Complete logging (prompts, outputs, costs)
 - Offline evaluation with 10 test cases
 - A/B testing framework (3 variants)

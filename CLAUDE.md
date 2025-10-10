@@ -37,8 +37,9 @@ These rules ensure maintainability, safety, and developer velocity for the Clean
 - **T-4 (SHOULD)** Prefer integration tests over heavy mocking.
 - **T-5 (SHOULD)** Unit-test complex algorithms thoroughly.
 - **T-6 (SHOULD)** Test the entire structure in one assertion if possible
+
   ```js
-  expect(result).toEqual([value]) // Good
+  expect(result).toEqual([value]); // Good
 
   expect(result).toHaveLength(1); // Bad
   expect(result[0]).toEqual(value); // Bad
@@ -89,9 +90,10 @@ When evaluating whether a function you implemented is good or not, use this chec
 8. Brainstorm 3 better function names and see if the current name is the best, consistent with rest of codebase.
 
 IMPORTANT: you SHOULD NOT refactor out a separate function unless there is a compelling need, such as:
-  - the refactored function is used in more than one place
-  - the refactored function is easily unit testable while the original function is not AND you can't test it any other way
-  - the original function is extremely hard to follow and you resort to putting comments everywhere just to explain it
+
+- the refactored function is used in more than one place
+- the refactored function is easily unit testable while the original function is not AND you can't test it any other way
+- the original function is extremely hard to follow and you resort to putting comments everywhere just to explain it
 
 ## Writing Tests Best Practices
 
@@ -128,7 +130,9 @@ Your code SHOULD ALWAYS follow these best practices.
 ```
 
 ### QPLAN
+
 When I type "qplan", this means:
+
 ```
 Analyze similar parts of the codebase and determine whether your plan:
 - is consistent with rest of codebase

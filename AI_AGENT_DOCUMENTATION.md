@@ -56,6 +56,7 @@ CleanSpace Pro now features an AI-powered scheduling agent built with **Groq** (
 ## 🗄️ Database Schema
 
 ### conversations
+
 Tracks entire conversation session with cost and outcome metrics.
 
 ```sql
@@ -78,6 +79,7 @@ CREATE TABLE conversations (
 ```
 
 ### messages
+
 Logs every individual message with detailed metadata.
 
 ```sql
@@ -96,6 +98,7 @@ CREATE TABLE messages (
 ```
 
 ### appointments
+
 Stores scheduled appointments with full details.
 
 ```sql
@@ -124,6 +127,7 @@ CREATE TABLE appointments (
 ```
 
 ### evaluation_sets
+
 Offline test cases for evaluating agent performance.
 
 ```sql
@@ -139,6 +143,7 @@ CREATE TABLE evaluation_sets (
 ```
 
 ### experiment_results
+
 Results from offline evaluations and A/B tests.
 
 ```sql
@@ -166,16 +171,19 @@ CREATE TABLE experiment_results (
 ### Chat Endpoints
 
 #### POST /api/chat/start
+
 Start a new conversation session.
 
 **Request:**
+
 ```json
 {
-  "variant": "baseline"  // or "professional" or "casual"
+  "variant": "baseline" // or "professional" or "casual"
 }
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -189,9 +197,11 @@ Start a new conversation session.
 ```
 
 #### POST /api/chat/message
+
 Send a message to the agent.
 
 **Request:**
+
 ```json
 {
   "sessionId": "uuid",
@@ -201,6 +211,7 @@ Send a message to the agent.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -222,9 +233,11 @@ Send a message to the agent.
 ```
 
 #### POST /api/chat/book
+
 Book an appointment.
 
 **Request:**
+
 ```json
 {
   "sessionId": "uuid",
@@ -243,6 +256,7 @@ Book an appointment.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -255,20 +269,24 @@ Book an appointment.
 ```
 
 #### POST /api/chat/end
+
 End conversation and collect feedback.
 
 **Request:**
+
 ```json
 {
   "sessionId": "uuid",
-  "satisfaction": 5  // 1-5 rating
+  "satisfaction": 5 // 1-5 rating
 }
 ```
 
 #### GET /api/chat/history/:sessionId
+
 Get conversation history.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -282,11 +300,13 @@ Get conversation history.
 ### Analytics Endpoints
 
 #### GET /api/analytics/metrics
+
 Get aggregate metrics.
 
 **Query Params:** `variant`, `startDate`, `endDate`
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -304,9 +324,11 @@ Get aggregate metrics.
 ```
 
 #### GET /api/analytics/metrics/by-variant
+
 Compare metrics across variants (A/B test results).
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -332,9 +354,11 @@ Compare metrics across variants (A/B test results).
 ```
 
 #### GET /api/analytics/experiments/:experimentName
+
 Get results from offline evaluation or A/B test.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -356,11 +380,13 @@ Get results from offline evaluation or A/B test.
 ```
 
 #### GET /api/analytics/cost-analysis
+
 Cost tracking over time.
 
 **Query Params:** `variant`, `groupBy` (hour/day/week/month)
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -412,6 +438,7 @@ node scripts/evaluate.js ab-test baseline casual
 ### Evaluation Metrics
 
 Each test case is scored 0.0 - 1.0 based on:
+
 - **Booking success** (30% weight)
 - **Data extraction** (name, phone, email, service type)
 - **Appropriate responses** (offers alternatives, explains constraints)
@@ -423,6 +450,7 @@ Each test case is scored 0.0 - 1.0 based on:
 ## 🎨 Agent Variants
 
 ### Baseline (Fast & Friendly)
+
 - **Model:** llama-3.1-8b-instant
 - **Temperature:** 0.7
 - **Cost:** $0.05 / 1M input tokens, $0.08 / 1M output tokens
@@ -430,6 +458,7 @@ Each test case is scored 0.0 - 1.0 based on:
 - **Tone:** Friendly, warm, conversational
 
 ### Professional (Balanced)
+
 - **Model:** llama-3.1-70b-versatile
 - **Temperature:** 0.5
 - **Cost:** $0.59 / 1M input tokens, $0.79 / 1M output tokens
@@ -437,6 +466,7 @@ Each test case is scored 0.0 - 1.0 based on:
 - **Tone:** Professional, efficient, solution-oriented
 
 ### Casual (Fun & Upbeat)
+
 - **Model:** llama-3.1-8b-instant
 - **Temperature:** 0.9
 - **Cost:** $0.05 / 1M input tokens, $0.08 / 1M output tokens
@@ -450,16 +480,19 @@ Each test case is scored 0.0 - 1.0 based on:
 ### Example Costs (Based on Groq Pricing)
 
 **Baseline Variant (8B model):**
+
 - Average conversation: ~500 tokens
 - Cost per conversation: $0.000025 (< 1 cent per 400 conversations)
 - Cost per booking (80% rate): $0.00003
 
 **Professional Variant (70B model):**
+
 - Average conversation: ~500 tokens
 - Cost per conversation: $0.00035 (< 1 cent per 3 conversations)
 - Cost per booking (90% rate): $0.00039
 
 **At 1,000 bookings/month:**
+
 - Baseline: **$0.03/month** (practically free!)
 - Professional: **$0.39/month** (still incredibly cheap)
 

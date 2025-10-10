@@ -251,7 +251,7 @@ export class PromptBudgetManager {
   /**
    * Check for alerts
    */
-  checkAlerts(budgetCheck) {
+  checkAlerts(_budgetCheck) {
     const alerts = [];
 
     // Daily cost alert

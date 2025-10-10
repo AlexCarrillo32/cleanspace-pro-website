@@ -18,6 +18,7 @@ import optimizationRoutes from "./src/routes/optimization.js";
 import metricsRoutes from "./src/routes/metrics.js";
 import safetyRoutes from "./src/routes/safety.js";
 import reliabilityMonitoringRoutes from "./src/routes/reliability-monitoring.js";
+import dashboardRoutes from "./src/routes/dashboard.js";
 import { errorHandler } from "./src/middleware/errorHandler.js";
 
 // Load environment variables
@@ -75,6 +76,7 @@ app.use("/api/optimization", optimizationRoutes);
 app.use("/api/metrics", metricsRoutes);
 app.use("/api/safety", safetyRoutes);
 app.use("/api/reliability-monitoring", reliabilityMonitoringRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {

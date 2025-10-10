@@ -346,3 +346,31 @@ export function initializePIIEventsTable(db) {
 
   console.log('✅ PII events table initialized');
 }
+
+export function initializeWorkflowExecutionsTable(db) {
+  db.run(`
+    CREATE TABLE IF NOT EXISTS workflow_executions (
+      id TEXT PRIMARY KEY,
+      workflow_id TEXT NOT NULL,
+      status TEXT NOT NULL,
+      current_step TEXT,
+      state TEXT,
+      context TEXT,
+      started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      completed_at DATETIME,
+      error_message TEXT
+    )
+  `);
+
+  db.run(`
+    CREATE INDEX IF NOT EXISTS idx_workflow_executions_workflow
+    ON workflow_executions(workflow_id, started_at DESC)
+  `);
+
+  db.run(`
+    CREATE INDEX IF NOT EXISTS idx_workflow_executions_status
+    ON workflow_executions(status, started_at DESC)
+  `);
+
+  console.log('✅ Workflow executions table initialized');
+}
