@@ -7,6 +7,9 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
+    "prod": "./scripts/production-start.sh",
+    "deploy:check": "npm test && npm run lint",
+    "deploy:install": "npm ci --production",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "lint": "eslint .",
     "format": "prettier --write ."

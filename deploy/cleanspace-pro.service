@@ -1,0 +1,30 @@
+[Unit]
+Description=CleanSpace Pro - AI-Powered Cleaning Service Platform
+Documentation=https://github.com/AlexCarrillo32/cleanspace-pro-website
+After=network.target
+
+[Service]
+Type=simple
+User=cleanspace
+WorkingDirectory=/opt/cleanspace-pro
+Environment=NODE_ENV=production
+EnvironmentFile=/opt/cleanspace-pro/.env
+ExecStart=/usr/bin/node server.js
+Restart=on-failure
+RestartSec=10
+StandardOutput=append:/var/log/cleanspace-pro/app.log
+StandardError=append:/var/log/cleanspace-pro/error.log
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/cleanspace-pro /var/log/cleanspace-pro
+
+# Resource limits
+LimitNOFILE=65536
+MemoryMax=512M
+
+[Install]
+WantedBy=multi-user.target
