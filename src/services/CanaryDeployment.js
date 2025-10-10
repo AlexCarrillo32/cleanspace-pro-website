@@ -500,7 +500,7 @@ export class CanaryDeployment {
   async logDeploymentEvent(eventType, data) {
     const db = getDatabase();
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       db.run(
         `INSERT INTO canary_events (event_type, canary_variant, stable_variant, data, created_at)
          VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)`,
