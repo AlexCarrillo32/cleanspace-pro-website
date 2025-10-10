@@ -9,7 +9,7 @@ import { piiDetector } from "../utils/PIIDetector.js";
 
 const GROQ_MODELS = {
   fast: "llama-3.1-8b-instant", // Free, very fast
-  balanced: "llama-3.1-70b-versatile", // Free, more capable
+  balanced: "llama-3.1-8b-instant", // Using same model for now (70b was decommissioned)
 };
 
 const PRICING = {
@@ -194,8 +194,7 @@ export class SchedulingAgent {
         UPDATE conversations
         SET total_messages = total_messages + 1,
             total_tokens = total_tokens + ?,
-            total_cost_usd = total_cost_usd + ?,
-            updated_at = CURRENT_TIMESTAMP
+            total_cost_usd = total_cost_usd + ?
         WHERE id = ?
       `);
 

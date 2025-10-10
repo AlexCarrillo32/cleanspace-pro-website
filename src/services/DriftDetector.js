@@ -30,6 +30,9 @@ export class DriftDetector {
       recentWindow: 24 * 60 * 60 * 1000, // 24 hours
       checkInterval: 60 * 60 * 1000, // Check every hour
 
+      // Cache settings
+      cacheTTL: 5 * 60 * 1000, // Cache results for 5 minutes
+
       ...options,
     };
 
@@ -38,13 +41,28 @@ export class DriftDetector {
       driftsDetected: 0,
       retrainingTriggered: 0,
       lastCheckTime: null,
+      cacheHits: 0,
+      cacheMisses: 0,
     };
+
+    // In-memory cache for drift results
+    this.driftCache = new Map();
   }
 
   /**
    * Detect drift across all metrics
    */
-  async detectDrift(variant = "baseline") {
+  async detectDrift(variant = "baseline", useCache = true) {
+    // Check cache first
+    if (useCache) {
+      const cached = this.getCachedDrift(variant);
+      if (cached) {
+        this.metrics.cacheHits++;
+        return { ...cached, fromCache: true };
+      }
+      this.metrics.cacheMisses++;
+    }
+
     this.metrics.checksPerformed++;
     this.metrics.lastCheckTime = Date.now();
 
@@ -108,7 +126,47 @@ export class DriftDetector {
       await this.logDrift(driftAnalysis);
     }
 
+    // Cache the result
+    this.cacheDriftResult(variant, driftAnalysis);
+
     return driftAnalysis;
+  }
+
+  /**
+   * Get cached drift result if still valid
+   */
+  getCachedDrift(variant) {
+    const cached = this.driftCache.get(variant);
+    if (!cached) return null;
+
+    const age = Date.now() - cached.timestamp;
+    if (age > this.config.cacheTTL) {
+      this.driftCache.delete(variant);
+      return null;
+    }
+
+    return cached.result;
+  }
+
+  /**
+   * Cache drift result
+   */
+  cacheDriftResult(variant, result) {
+    this.driftCache.set(variant, {
+      result,
+      timestamp: Date.now(),
+    });
+  }
+
+  /**
+   * Clear drift cache
+   */
+  clearCache(variant = null) {
+    if (variant) {
+      this.driftCache.delete(variant);
+    } else {
+      this.driftCache.clear();
+    }
   }
 
   /**
@@ -479,8 +537,21 @@ export class DriftDetector {
    * Get metrics
    */
   getMetrics() {
+    const cacheStats = {
+      cacheSize: this.driftCache.size,
+      cacheHitRate:
+        this.metrics.cacheHits + this.metrics.cacheMisses > 0
+          ? (
+              (this.metrics.cacheHits /
+                (this.metrics.cacheHits + this.metrics.cacheMisses)) *
+              100
+            ).toFixed(2) + "%"
+          : "0%",
+    };
+
     return {
       ...this.metrics,
+      ...cacheStats,
       config: this.config,
     };
   }

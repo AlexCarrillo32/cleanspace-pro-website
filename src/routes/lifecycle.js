@@ -71,6 +71,29 @@ router.get("/drift/metrics", async (req, res) => {
 });
 
 /**
+ * DELETE /api/lifecycle/drift/cache
+ * Clear drift detection cache
+ */
+router.delete("/drift/cache", async (req, res) => {
+  try {
+    const { variant } = req.query;
+
+    driftDetector.clearCache(variant);
+
+    res.json({
+      success: true,
+      message: variant
+        ? `Cache cleared for variant: ${variant}`
+        : "All drift cache cleared",
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+    });
+  }
+});
+
+/**
  * GET /api/lifecycle/retraining/check
  * Check if retraining should be triggered
  */

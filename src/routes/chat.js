@@ -1,6 +1,11 @@
 import express from "express";
 import { body, validationResult } from "express-validator";
 import { SchedulingAgent } from "../services/SchedulingAgent.js";
+import {
+  safetyCheck,
+  responseSafetyCheck,
+} from "../middleware/safetyMiddleware.js";
+import { safeLogger } from "../utils/SafeLogger.js";
 import crypto from "crypto";
 
 const router = express.Router();
@@ -45,7 +50,7 @@ router.post("/start", async (req, res, next) => {
   }
 });
 
-router.post("/message", chatValidation, async (req, res, next) => {
+router.post("/message", chatValidation, safetyCheck, async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -71,10 +76,25 @@ router.post("/message", chatValidation, async (req, res, next) => {
 
     const response = await agent.chat(conversationId, message);
 
+    // Check response safety
+    const responseCheck = responseSafetyCheck(response.message);
+
+    // Log conversation with PII protection
+    await safeLogger.logConversation(
+      sessionId,
+      req.redactedMessage || message,
+      responseCheck.sanitizedResponse,
+      {
+        conversationId,
+        variant,
+        piiWarning: req.piiWarning,
+      },
+    );
+
     res.json({
       success: true,
       data: {
-        message: response.message,
+        message: responseCheck.sanitizedResponse,
         action: response.action,
         extractedData: response.extractedData,
         metadata: response.metadata,
