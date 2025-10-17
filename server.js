@@ -10,6 +10,7 @@ import { fileURLToPath } from "url";
 import { initializeDatabase } from "./src/database/init.js";
 import quoteRoutes from "./src/routes/quotes.js";
 import inquiryRoutes from "./src/routes/inquiries.js";
+import appointmentRoutes from "./src/routes/appointments.js";
 import chatRoutes from "./src/routes/chat.js";
 import analyticsRoutes from "./src/routes/analytics.js";
 import reliabilityRoutes from "./src/routes/reliability.js";
@@ -69,6 +70,7 @@ app.use(
 // API Routes
 app.use("/api/quotes", quoteRoutes);
 app.use("/api/inquiries", inquiryRoutes);
+app.use("/api/appointments", appointmentRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/reliability", reliabilityRoutes);
