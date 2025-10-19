@@ -250,8 +250,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Trigger stats animation when about section is visible
-  const aboutSection = document.querySelector(".about");
+  // Trigger stats animation when features section is visible
+  const featuresSection = document.querySelector(".features");
   const statsObserver = new IntersectionObserver(
     function (entries) {
       entries.forEach((entry) => {
@@ -264,8 +264,8 @@ document.addEventListener("DOMContentLoaded", function () {
     { threshold: 0.5 },
   );
 
-  if (aboutSection) {
-    statsObserver.observe(aboutSection);
+  if (featuresSection) {
+    statsObserver.observe(featuresSection);
   }
 
   // Add loading animation for images (placeholder for future image integration)
