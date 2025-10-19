@@ -83,7 +83,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // Basic form validation
-    const requiredFields = ["name", "email", "service"];
+    const requiredFields = ["name", "email", "phone", "service"];
     let isValid = true;
 
     requiredFields.forEach((field) => {
@@ -105,12 +105,42 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (isValid) {
-      // Show success message (in a real application, you would send this to a server)
-      showNotification(
-        "Thank you! We'll contact you soon for your free quote.",
-        "success",
-      );
-      contactForm.reset();
+      // Send to backend API
+      fetch("/api/inquiries", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formObject.name,
+          email: formObject.email,
+          phone: formObject.phone,
+          service_type: formObject.service,
+          message: `Service request: ${formObject.service}`,
+        }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            showNotification(
+              "Thank you! We'll contact you soon for your free quote.",
+              "success",
+            );
+            contactForm.reset();
+          } else {
+            showNotification(
+              "Something went wrong. Please try again or call us directly.",
+              "error",
+            );
+          }
+        })
+        .catch((error) => {
+          console.error("Form submission error:", error);
+          showNotification(
+            "Unable to submit form. Please call us at (562) 440-9025.",
+            "error",
+          );
+        });
     } else {
       showNotification(
         "Please fill in all required fields correctly.",
