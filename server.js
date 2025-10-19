@@ -116,6 +116,21 @@ async function startServer() {
       console.log(`📱 Frontend: http://localhost:${PORT}`);
       console.log(`🔌 API: http://localhost:${PORT}/api`);
       console.log(`🏥 Health check: http://localhost:${PORT}/api/health`);
+
+      // Start memory monitoring (every 5 minutes in production, 1 minute in dev)
+      const monitoringInterval =
+        process.env.NODE_ENV === "production" ? 5 * 60 * 1000 : 60 * 1000;
+
+      setInterval(() => {
+        const usage = process.memoryUsage();
+        console.log("📊 Memory Status:", {
+          heapUsed: `${Math.round(usage.heapUsed / 1024 / 1024)}MB`,
+          heapTotal: `${Math.round(usage.heapTotal / 1024 / 1024)}MB`,
+          rss: `${Math.round(usage.rss / 1024 / 1024)}MB`,
+          external: `${Math.round(usage.external / 1024 / 1024)}MB`,
+          timestamp: new Date().toISOString(),
+        });
+      }, monitoringInterval);
     });
   } catch (error) {
     console.error("❌ Failed to start server:", error);

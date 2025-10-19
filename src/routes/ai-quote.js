@@ -1,12 +1,17 @@
 import express from "express";
 import { body, validationResult } from "express-validator";
 import QuoteAgent from "../services/QuoteAgent.js";
+import SessionManager from "../utils/SessionManager.js";
 import crypto from "crypto";
 
 const router = express.Router();
 
-// Store active quote sessions
-const quoteSessions = new Map();
+// Store active quote sessions with TTL and automatic cleanup
+const quoteSessions = new SessionManager({
+  ttl: 30 * 60 * 1000, // 30 minutes
+  maxSessions: 1000,
+  cleanupInterval: 5 * 60 * 1000, // 5 minutes
+});
 
 function getOrCreateQuoteAgent(sessionId) {
   if (!quoteSessions.has(sessionId)) {
@@ -31,6 +36,14 @@ const chatValidation = [
  */
 router.post("/start", async (req, res, next) => {
   try {
+    // Check session capacity
+    if (quoteSessions.size() >= 1000) {
+      return res.status(503).json({
+        success: false,
+        message: "Server at capacity. Please try again in a few minutes.",
+      });
+    }
+
     const sessionId = crypto.randomUUID();
     const session = getOrCreateQuoteAgent(sessionId);
 
@@ -134,7 +147,8 @@ router.post("/accept", async (req, res, next) => {
     if (!session) {
       return res.status(404).json({
         success: false,
-        message: "Quote session not found. Please start a new quote.",
+        message:
+          "Quote session not found or expired. Please start a new quote.",
       });
     }
 
@@ -185,7 +199,7 @@ router.get("/session/:sessionId", async (req, res, next) => {
     if (!session) {
       return res.status(404).json({
         success: false,
-        message: "Session not found",
+        message: "Session not found or expired",
       });
     }
 

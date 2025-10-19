@@ -6,12 +6,17 @@ import {
   responseSafetyCheck,
 } from "../middleware/safetyMiddleware.js";
 import { safeLogger } from "../utils/SafeLogger.js";
+import SessionManager from "../utils/SessionManager.js";
 import crypto from "crypto";
 
 const router = express.Router();
 
-// Store active agents by session
-const activeSessions = new Map();
+// Store active agents by session with TTL and automatic cleanup
+const activeSessions = new SessionManager({
+  ttl: 30 * 60 * 1000, // 30 minutes
+  maxSessions: 1000,
+  cleanupInterval: 5 * 60 * 1000, // 5 minutes
+});
 
 function getOrCreateAgent(sessionId, variant = "baseline") {
   if (!activeSessions.has(sessionId)) {
@@ -29,6 +34,14 @@ const chatValidation = [
 
 router.post("/start", async (req, res, next) => {
   try {
+    // Check session capacity
+    if (activeSessions.size() >= 1000) {
+      return res.status(503).json({
+        success: false,
+        message: "Server at capacity. Please try again in a few minutes.",
+      });
+    }
+
     const { variant = "baseline" } = req.body;
     const sessionId = crypto.randomUUID();
 
@@ -184,7 +197,7 @@ router.get("/history/:sessionId", async (req, res, next) => {
     if (!activeSessions.has(sessionId)) {
       return res.status(404).json({
         success: false,
-        message: "Session not found",
+        message: "Session not found or expired",
       });
     }
 
