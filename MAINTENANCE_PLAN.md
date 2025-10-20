@@ -51,30 +51,81 @@
 ### Recommended Update Schedule
 
 **Phase 1 (Week 1):**
-1. Update dotenv
-2. Run full test suite
-3. Deploy to staging
-4. Monitor for issues
+1. Update dotenv (16.6.1 → 17.2.3)
+   - Estimated time: 30 minutes
+   - Risk: Low
+   - Steps:
+     - Run `npm update dotenv`
+     - Check for breaking changes in changelog
+     - Test environment variable loading
+     - Run full test suite
+     - Deploy to staging environment
+     - Monitor for 24 hours
 
 **Phase 2 (Week 2):**
-1. Update helmet
-2. Update express-rate-limit
-3. Run full test suite
-4. Deploy to staging
-5. Monitor for security header changes
+1. Update helmet (7.2.0 → 8.1.0)
+   - Estimated time: 1-2 hours
+   - Risk: Medium
+   - Steps:
+     - Run `npm install helmet@^8.1.0`
+     - Review security header changes
+     - Test all endpoints with new headers
+     - Run full test suite
+     - Deploy to staging environment
+     - Monitor browser console for CSP issues
+
+2. Update express-rate-limit (7.5.1 → 8.1.0)
+   - Estimated time: 1 hour
+   - Risk: Medium
+   - Steps:
+     - Run `npm install express-rate-limit@^8.1.0`
+     - Check API changes in documentation
+     - Test rate limiting with multiple requests
+     - Verify 503 responses work correctly
+     - Run full test suite
+     - Deploy to staging environment
+     - Monitor rate limit effectiveness
 
 **Phase 3 (Week 3):**
-1. Update jest (dev only)
-2. Update eslint (dev only)
-3. Run test suite
-4. No deployment needed
+1. Update jest (29.7.0 → 30.2.0)
+   - Estimated time: 1-2 hours
+   - Risk: Low (dev only)
+   - Steps:
+     - Run `npm install --save-dev jest@^30.2.0`
+     - Review breaking changes
+     - Update test configurations if needed
+     - Run all tests and fix any failures
+     - Update package.json scripts if needed
+     - No deployment needed (dev dependency)
+
+2. Update eslint (8.57.1 → 9.38.0)
+   - Estimated time: 2-3 hours
+   - Risk: Low (dev only)
+   - Steps:
+     - Run `npm install --save-dev eslint@^9.38.0`
+     - Update .eslintrc.json for new config format
+     - Fix any new linting errors
+     - Run `npm run lint` to verify
+     - No deployment needed (dev dependency)
 
 **Phase 4 (Future - Q2 2025):**
-1. Research Express v5 migration
-2. Review breaking changes
-3. Plan migration timeline
-4. Test in isolated branch
-5. Migrate when ready
+1. Express v5 Migration (4.21.2 → 5.1.0)
+   - Estimated time: 2-4 hours
+   - Risk: High (breaking changes)
+   - Steps:
+     - Create isolated branch: `git checkout -b express-v5-migration`
+     - Research Express v5 breaking changes
+     - Read migration guide: https://expressjs.com/en/guide/migrating-5.html
+     - Run `npm install express@^5.1.0`
+     - Update middleware order if needed
+     - Fix deprecated method calls
+     - Update route handlers for new signatures
+     - Run full test suite
+     - Create comprehensive test plan
+     - Test all API endpoints manually
+     - Deploy to isolated staging environment
+     - Monitor for 1 week before production
+     - Merge when stable
 
 ### Testing Checklist Before Updates
 
