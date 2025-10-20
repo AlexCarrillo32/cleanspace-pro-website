@@ -45,7 +45,7 @@ router.post("/start", async (req, res, next) => {
     }
 
     const sessionId = crypto.randomUUID();
-    const session = getOrCreateQuoteAgent(sessionId);
+    getOrCreateQuoteAgent(sessionId);
 
     res.json({
       success: true,

@@ -109,7 +109,7 @@ export class ErrorRecoveryStrategies {
               },
             };
           }
-        } catch (recoveryError) {
+        } catch {
           // Continue to next strategy
           continue;
         }
