@@ -93,12 +93,12 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// Serve frontend for any non-API routes
-app.get("*", (req, res) => {
+// Serve frontend for any non-API routes (must be last)
+app.use((req, res, next) => {
   if (!req.path.startsWith("/api/")) {
     res.sendFile(path.join(__dirname, "index.html"));
   } else {
-    res.status(404).json({ error: "API endpoint not found" });
+    next();
   }
 });
 
